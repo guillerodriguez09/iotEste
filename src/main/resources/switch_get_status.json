@@ -1,0 +1,31 @@
+{
+  "id": 0,
+  "source": "WS_in",
+  "output": false,
+  "apower": 0,
+  "voltage": 225.9,
+  "current": 0,
+  "freq": 50,
+  "aenergy": {
+    "total": 11.679,
+    "by_minute": [
+      0,
+      0,
+      0
+    ],
+    "minute_ts": 1654511972
+  },
+  "ret_aenergy": {
+    "total": 5.817,
+    "by_minute": [
+      0,
+      0,
+      0
+    ],
+    "minute_ts": 1654511615
+  },
+  "temperature": {
+    "tC": 53.3,
+    "tF": 127.9
+  }
+}
