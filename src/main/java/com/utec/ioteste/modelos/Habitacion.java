@@ -1,11 +1,15 @@
 package com.utec.ioteste.modelos;
 
+import java.util.List;
+
 public class Habitacion {
 
     public String id;
     public boolean prendida;
     public int consumo;
     public int tempDeseada;
+
+    public Habitacion(){}
 
     public Habitacion(String id, boolean prendida, int consumo, int tempDeseada) {
         this.id = id;
@@ -45,4 +49,5 @@ public class Habitacion {
     public void setTempDeseada(int tempDeseada){
         this.tempDeseada = tempDeseada;
     }
+
 }
