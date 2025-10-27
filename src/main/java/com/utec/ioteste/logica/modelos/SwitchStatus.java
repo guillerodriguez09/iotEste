@@ -5,12 +5,16 @@ public class SwitchStatus {
 
     private String source;
     private boolean output;
+    private float tC;
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
 
     public boolean isOutput() { return output; }
     public void setOutput(boolean output) { this.output = output; }
+
+    public float gettC() { return tC; }
+    public void settC(float tC) { this.tC = tC; }
 
     @Override
     public String toString() {
