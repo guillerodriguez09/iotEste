@@ -1,15 +1,15 @@
-package com.utec.ioteste.modelos;
+package com.utec.ioteste.logica;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ControllerTemperaturaTest {
 
-    //private IControllerTemperatura controller;
+    private IControllerTemperatura controller;
 
     @BeforeEach
     void setUp() {
-        //controller = new ControllerTemperatura();
-        //controller.cargarConfiguracion("src/test/resources/site_config.json");
+        controller = new ControllerTemperatura();
+        controller.cargarConfiguracion("src/test/resources/site_config.json");
     }
 
     @Test

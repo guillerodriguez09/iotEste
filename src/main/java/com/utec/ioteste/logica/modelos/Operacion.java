@@ -1,4 +1,4 @@
-package com.utec.ioteste.modelos;
+package com.utec.ioteste.logica.modelos;
 
 public class Operacion {
 
