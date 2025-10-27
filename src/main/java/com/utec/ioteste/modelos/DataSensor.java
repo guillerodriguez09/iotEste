@@ -2,7 +2,7 @@ package com.utec.ioteste.modelos;
 
 public class DataSensor {
 
-    String sensor;
+    String id;
     float timestamp;
     float temperatura;
 
