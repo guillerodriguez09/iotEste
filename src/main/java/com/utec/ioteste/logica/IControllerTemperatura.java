@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface IControllerTemperatura {
 
-    public abstract Operacion accionHabitacion(DataSensor dataSensor, List<Habitacion> habitaciones);
+    public abstract List <Operacion> accionHabitacion(List <DataSensor> dataSensor, List<Habitacion> habitaciones);
 
     public abstract void optimizacion(List<Habitacion> habitaciones);
 

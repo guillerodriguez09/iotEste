@@ -12,8 +12,8 @@ public class Habitacion {
     @JsonProperty("switch")
     private String switchUrl;
     private String sensor;
-    private int tempActual;
-    private int ultimaActualizacion;
+    private double tempActual;
+    private long ultimaActualizacion;
 
     public void setName(String name) {this.name = name;}
     public boolean getPrendida() {return prendida;}
@@ -29,8 +29,8 @@ public class Habitacion {
     public int getExpectedTemp() {return expectedTemp;}
     public String getSwitchUrl() {return switchUrl;}
     public String getSensor() {return sensor;}
-    public int getTempActual() {return tempActual;}
-    public int getUltimaActualizacion() {return ultimaActualizacion;}
+    public double getTempActual() {return tempActual;}
+    public long getUltimaActualizacion() {return ultimaActualizacion;}
 
     public double getEnergyValue() {
         return Double.parseDouble(energy.replaceAll("[^\\d.]", ""));
