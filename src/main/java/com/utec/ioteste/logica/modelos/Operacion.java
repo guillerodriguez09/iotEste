@@ -2,27 +2,21 @@ package com.utec.ioteste.logica.modelos;
 
 public class Operacion {
 
-    String idSwitch;
-    boolean prendido;
+    public static class Params {
+        private boolean was_on;
 
-    public Operacion(String idSwitch, boolean prendido) {
-        this.idSwitch = idSwitch;
-        this.prendido = prendido;
+        public boolean isWas_on() { return was_on; }
+        public void setWas_on(boolean was_on) { this.was_on = was_on; }
     }
 
-    public String getIdSwitch() {
-        return idSwitch;
-    }
+    private int id;
+    private String src;
+    private Params params;
 
-    public void setIdSwitch(String idSwitch) {
-        this.idSwitch = idSwitch;
-    }
-
-    public boolean isPrendido() {
-        return prendido;
-    }
-
-    public void setPrendido(boolean prendido) {
-        this.prendido = prendido;
-    }
+    public int getId() { return id; }
+    public String getSrc() { return src; }
+    public Params getParams() { return params; }
+    public void setId(int id) { this.id = id; }
+    public void setSrc(String src) { this.src = src; }
+    public void setParams(Params params) { this.params = params; }
 }

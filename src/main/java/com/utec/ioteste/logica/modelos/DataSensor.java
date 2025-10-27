@@ -4,37 +4,25 @@ import java.time.LocalDateTime;
 
 public class DataSensor {
 
-    String id;
-    LocalDateTime timestamp;
-    float temperatura;
+    private String src;
+    private String id;
+    private double ts;
+    private float tC;
+    private String connected;
 
-    public DataSensor(String id, LocalDateTime timestamp, float temperatura) {
-        this.id = id;
-        this.timestamp = timestamp;
-        this.temperatura = temperatura;
-    }
+    public void setConnected(String connected) {this.connected = connected;}
+    public void setSrc(String src) {this.src = src;}
+    public void setId(String id) {this.id = id;}
+    public void setTs(double ts) {this.ts = ts;}
+    public void setTC(float tC) {this.tC = tC;}
+    public String getConnected() {return connected;}
+    public String getSrc() {return src;}
+    public String getId() {return id;}
+    public double getTs() {return ts;}
+    public float getTC() {return tC;}
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public float getTemperatura() {
-        return temperatura;
-    }
-
-    public void setTemperatura(float temperatura) {
-        this.temperatura = temperatura;
+    //convierte ts a ms
+    public long getTsMillis() {
+        return (long) (ts * 1000);
     }
 }

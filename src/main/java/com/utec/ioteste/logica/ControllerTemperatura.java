@@ -22,20 +22,8 @@ public class ControllerTemperatura implements IControllerTemperatura {
     @Override
     public Operacion accionHabitacion(DataSensor dataSensor, List<Habitacion> habitaciones) {
 
-        //Obtiene la timestamp del sensor
-        LocalDateTime timestamp = dataSensor.getTimestamp();
 
-        //Le coloca una zona de tiempo
-        ZonedDateTime zdt = timestamp.atZone(ZoneId.systemDefault());
-
-        //Lo convierte en un instant
-        Instant instant = zdt.toInstant();
-
-        //Convierte a milisegundos
-        long milisegundos = instant.toEpochMilli();
-
-        todosLosMili.add(milisegundos);
-
+        todosLosMili.add(dataSensor.getTsMillis());
 
 //        for(Habitacion fila : habitaciones){
 //
