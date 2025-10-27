@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Habitacion {
 
-    public String id;
+    public String src;
     public boolean prendida;
     public int consumo;
     public int tempDeseada;

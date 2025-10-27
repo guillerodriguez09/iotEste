@@ -8,4 +8,6 @@ public interface IControllerTemperatura {
 
     Operacion accionHabitacion(DataSensor dataSensor, List<Habitacion> habitaciones);
 
+    void optimizacion();
+
 }

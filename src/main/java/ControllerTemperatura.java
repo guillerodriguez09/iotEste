@@ -15,26 +15,29 @@ public class ControllerTemperatura {
     boolean prendido = false;
     int consumoActual = 0;
     Habitacion habitacion = new Habitacion();
+    ArrayList<Long> todosLosMili = new ArrayList<>();
 
-    public Operacion accionHabitacion(DataSensor dataSensor, List<Habitacion> habitaciones){
+    public List<Operacion> accionHabitacion(List<DataSensor> dataSensor, List<Habitacion> habitaciones){
 
-        //Obtiene la timestamp del sensor
-        LocalDateTime timestamp = dataSensor.getTimestamp();
+        for(DataSensor ds : dataSensor){
 
-        //Le coloca una zona de tiempo
-        ZonedDateTime zdt = timestamp.atZone(ZoneId.systemDefault());
+            //Obtiene la timestamp del sensor
+            LocalDateTime timestamp = ds.getTimestamp();
 
-        //Lo convierte en un instant
-        Instant instant = zdt.toInstant();
+            //Le coloca una zona de tiempo
+            ZonedDateTime zdt = timestamp.atZone(ZoneId.systemDefault());
 
-        //Convierte a milisegundos
-        long milisegundos = instant.toEpochMilli();
+            //Lo convierte en un instant
+            Instant instant = zdt.toInstant();
+
+            //Convierte a milisegundos
+            long milisegundos = instant.toEpochMilli();
+
+            todosLosMili.add(milisegundos);
+
+        }
 
         for(Habitacion fila : habitaciones){
-
-            if(fila.getId().equals(dataSensor.getId())){
-                habitacion = fila;
-            }
 
             if(fila.getPrendida()) {
                 consumoActual += fila.getConsumo();
@@ -48,8 +51,6 @@ public class ControllerTemperatura {
 
         }
 
-        Operacion oper = new Operacion(dataSensor.getId(), prendido);
-
         return oper;
 
     }
@@ -60,12 +61,11 @@ public class ControllerTemperatura {
 
             if(fila.getPrendida()) {
 
-                fila.getTempDeseada()
+                fila.getTempDeseada();
 
                 if(consumoActual >= Configuracion.consumoMax){
 
                     fila.optimizacion(habitaciones);
-                    return null;
                 }
             }
 
