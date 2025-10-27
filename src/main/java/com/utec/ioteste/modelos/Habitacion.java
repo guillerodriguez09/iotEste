@@ -8,14 +8,18 @@ public class Habitacion {
     public boolean prendida;
     public int consumo;
     public int tempDeseada;
+    public int tempActual;
+    public int ultimaActualizacion;
 
     public Habitacion(){}
 
-    public Habitacion(String id, boolean prendida, int consumo, int tempDeseada) {
+    public Habitacion(String id, boolean prendida, int consumo, int tempDeseada, int tempActual, int ultimaActualizacion) {
         this.id = id;
         this.prendida = prendida;
         this.consumo = consumo;
         this.tempDeseada = tempDeseada;
+        this.tempActual = tempActual;
+        this.ultimaActualizacion = ultimaActualizacion;
     }
 
     public String getId() {
@@ -48,6 +52,22 @@ public class Habitacion {
 
     public void setTempDeseada(int tempDeseada){
         this.tempDeseada = tempDeseada;
+    }
+
+    public int getTempActual(){
+        return tempActual;
+    }
+
+    public void setTempActual(int tempActual){
+        this.tempActual = tempActual;
+    }
+
+    public int getUltimaActualizacion(){
+        return ultimaActualizacion;
+    }
+
+    public void setUltimaActualizacion(int ultimaActualizacion){
+        this.ultimaActualizacion = ultimaActualizacion;
     }
 
 }
