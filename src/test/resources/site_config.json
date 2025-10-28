@@ -7,7 +7,7 @@
   },
   "rooms": [
     {
-      "name": "office1",
+      "name": "shellyhtg3-84fce63ad204",
       "expectedTemp": "22",
       "energy": "2 kWh",
       "switch": "http://host:port/switch/1",

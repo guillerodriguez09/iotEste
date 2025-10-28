@@ -1,28 +1,38 @@
 package com.utec.ioteste.logica.modelos;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DataSensor {
 
-    private String src;
-    private String id;
-    private double ts;
-    private float tC;
-    private String connected;
+    public static class Params {
+        private double ts;
+        @JsonProperty("temperature:0")
+        private Temperature temperature;
 
-    public void setConnected(String connected) {this.connected = connected;}
-    public void setSrc(String src) {this.src = src;}
-    public void setId(String id) {this.id = id;}
-    public void setTs(double ts) {this.ts = ts;}
-    public void setTC(float tC) {this.tC = tC;}
-    public String getConnected() {return connected;}
-    public String getSrc() {return src;}
-    public String getId() {return id;}
-    public double getTs() {return ts;}
-    public float getTC() {return tC;}
-
-    //convierte ts a ms
-    public long getTsMillis() {
-        return (long) (ts * 1000);
+        public void setTs(double ts) {this.ts = ts;}
+        public double getTs() {return ts;}
+        public Temperature getTemperature() { return temperature; }
+        public void setTemperature(Temperature temperature) { this.temperature = temperature; }
+        public long getTsMillis() {
+            return (long) (ts * 1000);
+        }
     }
+
+    public static class Temperature {
+        @JsonProperty("tC")
+        private float tC;
+
+        public float getTC() { return tC; }
+        public void setTC(float tC) { this.tC = tC; }
+    }
+
+    private String src;
+    private Params params;
+
+    public void setSrc(String src) {this.src = src;}
+    public String getSrc() {return src;}
+    public Params getParams() { return params; }
+    public void setParams(DataSensor.Params params) { this.params = params; }
+
 }
