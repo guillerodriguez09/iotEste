@@ -45,7 +45,7 @@ public class ControllerTemperatura implements IControllerTemperatura {
         h.setTemperaturaActual((float) dataSensor.getParams().getTemperature().getTC());
 
 //         Verificar inactividad si pasaron mas de 15 min
-        //Esto iria en optimizacion o verificar en otras habitaciones
+        //Esto iria en optimizacion o en obtener estado actual con un for para todas las habitaciones
 //        if (Duration.between(h.getUltimaActualizacion(), LocalDateTime.now()).toMinutes()>15){
 //            //en caso de inactividad apago
 //            operaciones.add(crearOperacion(h.getHabitacion().getSensor(), false));
