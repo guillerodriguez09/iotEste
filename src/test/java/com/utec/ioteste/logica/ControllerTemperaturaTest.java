@@ -13,48 +13,47 @@ public class ControllerTemperaturaTest {
     void setUp() {
         controller = new ControllerTemperatura();
         controller.cargarConfiguracion("src/test/resources/site_config.json");
-        controller.cargarDataSensor("src/test/resources/sensor.json");
     }
 
     @Test
     void debeEncenderCuandoTemperaturaBaja() {
-        List<Operacion> acciones = controller.accionHabitacion(controller.obtenerUltimaMedicion(),controller.obtenerEstadoActual());
+        DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",13,200001,false);
+        List<Operacion> acciones = controller.accionHabitacion(medicion,controller.obtenerEstadoActual());
 
         assertFalse(acciones.isEmpty());
         assertEquals("shellyhtg3-84fce63ad204", acciones.get(0).getSrc());
-        assertTrue(acciones.get(0).getParams().isWas_on());
+        assertTrue(acciones.get(0).getEncendido());
     }
 
     @Test
     void debeApagarCuandoTemperaturaAlta() {
 
-        DataSensor mod = controller.obtenerUltimaMedicion();
-        mod.getParams().getTemperature().setTC(28);
-        List<Operacion> acciones = controller.accionHabitacion(mod,controller.obtenerEstadoActual());
+        DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",28,200001,true);
+        List<Operacion> acciones = controller.accionHabitacion(medicion,controller.obtenerEstadoActual());
 
         assertFalse(acciones.isEmpty());
         assertEquals("shellyhtg3-84fce63ad204", acciones.get(0).getSrc());
-        assertFalse(acciones.get(0).getParams().isWas_on());
+        assertFalse(acciones.get(0).getEncendido());
     }
 
     @Test
     void noDebeExcederConsumoMaximo() {
-        List<Operacion> acciones = controller.accionHabitacion(controller.obtenerUltimaMedicion(),controller.obtenerEstadoActual());
+        DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",28,200001,true);
+        List<Operacion> acciones = controller.accionHabitacion(medicion,controller.obtenerEstadoActual());
 
         EstadoSistema estado = controller.obtenerEstadoActual();
         assertTrue(estado.getConsumoActual() <= estado.getConsumoMaximo());
 
         // Verificar que el sistema está limitado por consumo
         if (estado.isLimitadoPorConsumo()) {
-            assertTrue(acciones.isEmpty() || !acciones.get(0).getParams().isWas_on());
+            assertTrue(acciones.isEmpty() || !acciones.get(0).getEncendido());
         }
     }
 
     @Test
     void debeManetenerTemperaturaEnRango() {
-        DataSensor mod = controller.obtenerUltimaMedicion();
-        mod.getParams().getTemperature().setTC(22);
-        List<Operacion> acciones = controller.accionHabitacion(mod,controller.obtenerEstadoActual());
+        DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",22,200001,true);
+        List<Operacion> acciones = controller.accionHabitacion(medicion,controller.obtenerEstadoActual());
 
         // No debería generar acciones si la temperatura está en rango
         assertTrue(acciones.isEmpty() ||
@@ -88,16 +87,6 @@ public class ControllerTemperaturaTest {
         EstadoSistema estado = controller.obtenerEstadoActual();
         assertNotNull(estado);
         assertTrue(estado.getConsumoMaximo() > 0);
-    }
-
-    @Test
-    void debeCagarSensorCorrectamente() {
-        assertDoesNotThrow(() -> {
-            controller.cargarDataSensor("src/test/resources/sensor.json");
-        });
-        DataSensor sensor = controller.obtenerUltimaMedicion();
-        assertNotNull(sensor);
-        assertTrue(sensor.getParams().getTemperature().getTC() > 0);
     }
 
 }
