@@ -2,7 +2,8 @@
   "site": "oficina001",
   "maxEnergy": "14 kWh",
   "timeSlot": {
-    "contractType":"std",
+    "contractType":"testContract",
+    "contractTypeOriginal":"std",
     "refreshPeriod":"10000 ms"
   },
   "rooms": [
