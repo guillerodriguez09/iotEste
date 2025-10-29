@@ -1,38 +1,27 @@
 package com.utec.ioteste.logica.modelos;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class DataSensor {
 
-    public static class Params {
-        private double ts;
-        @JsonProperty("temperature:0")
-        private Temperature temperature;
-
-        public void setTs(double ts) {this.ts = ts;}
-        public double getTs() {return ts;}
-        public Temperature getTemperature() { return temperature; }
-        public void setTemperature(Temperature temperature) { this.temperature = temperature; }
-        public long getTsMillis() {
-            return (long) (ts * 1000);
-        }
-    }
-
-    public static class Temperature {
-        @JsonProperty("tC")
-        private float tC;
-
-        public float getTC() { return tC; }
-        public void setTC(float tC) { this.tC = tC; }
-    }
-
     private String src;
-    private Params params;
+    private float temperatura;
+    private double timestamp;
+    private boolean connected;
+
+    public DataSensor() {}
+
+    public DataSensor(String src, float temperatura, double timestamp, boolean connected) {
+        this.src = src;
+        this.temperatura = temperatura;
+        this.timestamp = timestamp;
+        this.connected = connected;
+    }
 
     public void setSrc(String src) {this.src = src;}
     public String getSrc() {return src;}
-    public Params getParams() { return params; }
-    public void setParams(DataSensor.Params params) { this.params = params; }
-
+    public float getTemperatura() {return temperatura;}
+    public double getTimestamp() {return timestamp;}
+    public void setConnected(boolean connected) {this.connected = connected;}
+    public boolean getConnected() {return connected;}
+    public void setTimestamp(double timestamp) {this.timestamp = timestamp;}
+    public void setTemperatura(float temperatura) {this.temperatura = temperatura;}
 }

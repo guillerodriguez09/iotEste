@@ -6,16 +6,23 @@ public class Habitacion {
 
 
     private String name;
-    private boolean prendida;
     private String energy;
     private int expectedTemp;
     @JsonProperty("switch")
     private String switchUrl;
     private String sensor;
 
+    public Habitacion() {}
+
+    public Habitacion(String name, String energy, int expectedTemp, String switchUrl, String sensor) {
+        this.name = name;
+        this.energy = energy;
+        this.expectedTemp = expectedTemp;
+        this.switchUrl = switchUrl;
+        this.sensor = sensor;
+    }
+
     public void setName(String name) {this.name = name;}
-    public boolean getPrendida() {return prendida;}
-    public void setPrendida(boolean prendida) {this.prendida = prendida;}
     public void setEnergy(String energy) {this.energy = energy;}
     public void setExpectedTemp(int expectedTemp) {this.expectedTemp = expectedTemp;}
     public void setSwitchUrl(String switchUrl) {this.switchUrl = switchUrl;}

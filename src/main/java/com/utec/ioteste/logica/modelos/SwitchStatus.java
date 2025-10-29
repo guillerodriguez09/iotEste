@@ -7,6 +7,14 @@ public class SwitchStatus {
     private boolean output;
     private float tC;
 
+    public SwitchStatus(String source, boolean output, float tC) {
+        this.source = source;
+        this.output = output;
+        this.tC = tC;
+    }
+
+    public SwitchStatus() {};
+
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
 

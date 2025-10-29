@@ -11,11 +11,9 @@ public class EstadoHabitacion {
 
     public EstadoHabitacion(Habitacion habitacion) {
         this.habitacion = habitacion;
-        this.consumo = 0;
-        this.switchEncendido = habitacion.getPrendida();
-        if (this.switchEncendido) {
-            Operacion operacion = new Operacion(habitacion.getName(), habitacion.getSensor(), false);
-        }
+        this.consumo = getConsumo();
+        this.switchEncendido = consumo > 0;
+        this.switchEncendido = false;
         this.temperaturaActual = 0;
         this.ultimaActualizacion = LocalDateTime.now();
     }

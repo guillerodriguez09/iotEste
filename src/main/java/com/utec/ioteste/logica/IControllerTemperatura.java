@@ -17,7 +17,4 @@ public interface IControllerTemperatura {
 
     public abstract void cargarConfiguracion(String rutaConfig);
 
-    public abstract void cargarDataSensor(String rutaConfig);
-
-    public abstract DataSensor obtenerUltimaMedicion();
 }

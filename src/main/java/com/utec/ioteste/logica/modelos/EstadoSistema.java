@@ -18,7 +18,7 @@ public class EstadoSistema {
             habitaciones.add(new EstadoHabitacion(h));
         }
         this.consumoActual = 0;
-        this.consumoMaximo = config.getMaxEnergyValue();
+        this.consumoMaximo = config.getMaxEnergy();
         this.limitadoPorConsumo = false;
         this.horaPico = false;
     }

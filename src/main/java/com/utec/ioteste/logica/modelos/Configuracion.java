@@ -5,22 +5,26 @@ import java.util.List;
 public class Configuracion {
 
     private String site;
-    private String maxEnergy;
+    private int maxEnergy;
     private TimeSlot timeSlot;
     private List<Habitacion> rooms;
 
-    public String getMaxEnergy() { return maxEnergy; }
-    public void setMaxEnergy(String maxEnergy) { this.maxEnergy = maxEnergy; }
+    public Configuracion(String site, int maxEnergy, TimeSlot timeSlot, List<Habitacion> rooms) {
+        this.site = site;
+        this.maxEnergy = maxEnergy;
+        this.timeSlot = timeSlot;
+        this.rooms = rooms;
+    }
+
+    public Configuracion() {};
+
+    public int getMaxEnergy() { return maxEnergy; }
+    public void setMaxEnergy(int maxEnergy) { this.maxEnergy = maxEnergy; }
     public List<Habitacion> getRooms() { return rooms; }
     public void setRooms(List<Habitacion> rooms) { this.rooms = rooms; }
     public String getSite() { return site; }
     public void setSite(String site) { this.site = site; }
     public TimeSlot getTimeSlot() { return timeSlot; }
     public void setTimeSlot(TimeSlot timeSlot) { this.timeSlot = timeSlot; }
-
-    //Elimina el khw y devuelve solo el numero
-    public double getMaxEnergyValue() {
-        return Double.parseDouble(maxEnergy.replaceAll("[^\\d.]", ""));
-    }
 
 }

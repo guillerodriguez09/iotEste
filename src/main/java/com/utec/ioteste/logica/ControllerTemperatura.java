@@ -6,7 +6,6 @@ import com.utec.ioteste.logica.modelos.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.List;
 public class ControllerTemperatura implements IControllerTemperatura {
 
     private EstadoSistema estadoSistema;
-    private DataSensor ultimaMedicion;
     private static final long LIMITE_INACTIVIDAD = 7_200_000L;
 
     @Override
@@ -42,7 +40,7 @@ public class ControllerTemperatura implements IControllerTemperatura {
 
         EstadoHabitacion h = buscarHabitacion(estadoSistema.getHabitaciones(), dataSensor.getSrc());
 
-        h.setTemperaturaActual((float) dataSensor.getParams().getTemperature().getTC());
+        h.setTemperaturaActual((float) dataSensor.getTemperatura());
 
 //         Verificar inactividad si pasaron mas de 15 min
         //Esto iria en optimizacion o en obtener estado actual con un for para todas las habitaciones
@@ -56,13 +54,13 @@ public class ControllerTemperatura implements IControllerTemperatura {
 //        }
 //        h.setUltimaActualizacion(LocalDateTime.now());
 
-        if (h.getHabitacion().getExpectedTemp()>dataSensor.getParams().getTemperature().getTC()) {
+        if (h.getHabitacion().getExpectedTemp()>dataSensor.getTemperatura()) {
             if (validarConsumoMaximo(operaciones)) {
                 //aca iria la optimizacion
             }
             operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
         }
-        else if (h.getHabitacion().getExpectedTemp()<dataSensor.getParams().getTemperature().getTC()) {
+        else if (h.getHabitacion().getExpectedTemp()<dataSensor.getTemperatura()) {
             operaciones.add(crearOperacion(h.getHabitacion().getName(), false));
         }
         return operaciones;
@@ -90,21 +88,19 @@ public class ControllerTemperatura implements IControllerTemperatura {
         return null;
     }
 
-    //calcula el consumo actual
-    private double calcularConsumoActual(List<Habitacion> habitaciones) {
-        return habitaciones.stream()
-                .filter(Habitacion::getPrendida)
-                .mapToDouble(Habitacion::getEnergyValue)
-                .sum();
-    }
+   //calcula el consumo actual
+//    private double calcularConsumoActual(List<Habitacion> habitaciones) {
+//        return habitaciones.stream()
+//                .filter(Habitacion::getPrendida)
+//                .mapToDouble(Habitacion::getEnergyValue)
+//                .sum();
+//    }
 
    //crea la operacion que va a devolver
     private Operacion crearOperacion(String switchUrl, boolean encender) {
         Operacion oper = new Operacion();
         oper.setSrc(switchUrl);
-        Operacion.Params params = new Operacion.Params();
-        params.setWas_on(encender);
-        oper.setParams(params);
+        oper.setEncendido(encender);
         return oper;
     }
 
@@ -120,27 +116,10 @@ public class ControllerTemperatura implements IControllerTemperatura {
         }
     }
 
-    @Override
-    public void cargarDataSensor(String rutaConfig) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        try {
-            ultimaMedicion = mapper.readValue(new File(rutaConfig), DataSensor.class);
-            System.out.println("Sensor cargado correctamente:"+ ultimaMedicion);
-        } catch(IOException e){
-            System.err.println("Error al leer configuración: ");
-            ultimaMedicion = null;
-        }
-    }
 
     @Override
     public EstadoSistema obtenerEstadoActual() {
         return estadoSistema;
-    }
-
-    @Override
-    public DataSensor obtenerUltimaMedicion() {
-        return ultimaMedicion;
     }
 
 
