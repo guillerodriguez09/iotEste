@@ -23,6 +23,17 @@ public class EstadoSistema {
         this.horaPico = false;
     }
 
+    public EstadoSistema(Configuracion config, List<EstadoHabitacion> habitaciones, double consumoActual, double consumoMaximo, boolean limitadoPorConsumo, boolean horaPico) {
+        this.config = config;
+        this.habitaciones = habitaciones;
+        this.consumoActual = consumoActual;
+        this.consumoMaximo = consumoMaximo;
+        this.limitadoPorConsumo = limitadoPorConsumo;
+        this.horaPico = horaPico;
+    }
+
+    public EstadoSistema() {}
+
     public Configuracion getConfig() { return config; }
     public void setConfig(Configuracion config) { this.config = config; }
     public List<EstadoHabitacion> getHabitaciones() { return habitaciones; }

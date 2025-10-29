@@ -1,6 +1,7 @@
 package com.utec.ioteste.logica;
 import com.utec.ioteste.logica.modelos.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,7 +24,23 @@ public class ControllerTemperaturaTest {
         assertFalse(acciones.isEmpty());
         assertEquals("shellyhtg3-84fce63ad204", acciones.get(0).getSrc());
         assertTrue(acciones.get(0).getEncendido());
+        //chequear que solo accione 1 switch
     }
+
+    @Test
+    @DisplayName("Teperatura baja pero switch ya encendido")
+    void debeEncenderCuandoTemperaturaBaja1() {
+        DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",13,200001,false);
+
+        EstadoSistema estado = new EstadoSistema(/*Completar etc*/);
+        List<Operacion> acciones = controller.accionHabitacion(medicion,estado);
+
+        assertTrue(acciones.isEmpty());
+        //chequear que solo accione 1 switch
+    }
+    //crear el estado actual como querramos
+    //otro test Estado prendido pero temp baja entoces no hace nada
+    //sleep thread para calcular tiempo
 
     @Test
     void debeApagarCuandoTemperaturaAlta() {
