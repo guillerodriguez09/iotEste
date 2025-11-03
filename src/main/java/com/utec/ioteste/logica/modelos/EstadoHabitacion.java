@@ -9,6 +9,8 @@ public class EstadoHabitacion {
     private double consumo;
     private LocalDateTime ultimaActualizacion;
 
+    public EstadoHabitacion(){}
+
     public EstadoHabitacion(Habitacion habitacion) {
         this.habitacion = habitacion;
         this.consumo = getConsumo();
