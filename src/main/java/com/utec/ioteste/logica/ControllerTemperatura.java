@@ -12,12 +12,8 @@ import java.util.List;
 
 public class ControllerTemperatura implements IControllerTemperatura {
 
-    /*
-    EL CONTRATO ES EL QUE INDICA EL CAMBIO DE TARIFA ALTA A BAJA
-    * */
-
     private EstadoSistema estadoSistema;
-    private static final long LIMITE_INACTIVIDAD = 7_200_000L;
+    //private static final long LIMITE_INACTIVIDAD = 7_200_000L;
 
     @Override
     public List<Operacion> accionHabitacion(DataSensor dataSensor, EstadoSistema estadoSistema) {
@@ -41,7 +37,6 @@ public class ControllerTemperatura implements IControllerTemperatura {
             return operaciones;
         }
 
-        List<EstadoHabitacion> habitaciones = estadoSistema.getHabitaciones();
 
         EstadoHabitacion h = buscarHabitacion(estadoSistema.getHabitaciones(), dataSensor.getSrc());
 
@@ -60,22 +55,9 @@ public class ControllerTemperatura implements IControllerTemperatura {
 //        h.setUltimaActualizacion(LocalDateTime.now());
 
         if (h.getHabitacion().getExpectedTemp()>dataSensor.getTemperatura()) {
-
-            //INTENTO OPTIMIZACION
-            if(estadoSistema.getConsumoActual() < estadoSistema.getConsumoMaximo()){
-
-                double consumoTot = estadoSistema.getConsumoActual() + h.getConsumo();
-
-                if(consumoTot < estadoSistema.getConsumoMaximo()){
-                    operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
-                }
-
-            }else{
-                //if (validarConsumoMaximo(operaciones)) {
+            if (validarConsumoMaximo(operaciones)) {
                 //aca iria la optimizacion
-                //}
             }
-
             operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
         }
         else if (h.getHabitacion().getExpectedTemp()<dataSensor.getTemperatura()) {
@@ -93,9 +75,6 @@ public class ControllerTemperatura implements IControllerTemperatura {
 
     @Override
     public List<Operacion> optimizacion(List<Operacion> acciones){
-
-        EstadoSistema estadoSistema = new EstadoSistema();
-
         return null;
     }
 
@@ -109,13 +88,6 @@ public class ControllerTemperatura implements IControllerTemperatura {
         return null;
     }
 
-   //calcula el consumo actual
-    private double calcularConsumoActual(List<EstadoHabitacion> habitaciones) {
-        return habitaciones.stream()
-                .filter(EstadoHabitacion::isSwitchEncendido)
-                .mapToDouble(EstadoHabitacion::getConsumo)
-                .sum();
-    }
 
    //crea la operacion que va a devolver
     private Operacion crearOperacion(String switchUrl, boolean encender) {
