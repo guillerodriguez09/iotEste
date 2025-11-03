@@ -13,7 +13,7 @@ import java.util.List;
 public class ControllerTemperatura implements IControllerTemperatura {
 
     private EstadoSistema estadoSistema;
-    private static final long LIMITE_INACTIVIDAD = 7_200_000L;
+    //private static final long LIMITE_INACTIVIDAD = 7_200_000L;
 
     @Override
     public List<Operacion> accionHabitacion(DataSensor dataSensor, EstadoSistema estadoSistema) {
@@ -88,13 +88,6 @@ public class ControllerTemperatura implements IControllerTemperatura {
         return null;
     }
 
-   //calcula el consumo actual
-//    private double calcularConsumoActual(List<Habitacion> habitaciones) {
-//        return habitaciones.stream()
-//                .filter(Habitacion::getPrendida)
-//                .mapToDouble(Habitacion::getEnergyValue)
-//                .sum();
-//    }
 
    //crea la operacion que va a devolver
     private Operacion crearOperacion(String switchUrl, boolean encender) {

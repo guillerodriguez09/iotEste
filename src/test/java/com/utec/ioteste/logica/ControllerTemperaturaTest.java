@@ -27,17 +27,6 @@ public class ControllerTemperaturaTest {
         //chequear que solo accione 1 switch
     }
 
-    @Test
-    @DisplayName("Teperatura baja pero switch ya encendido")
-    void debeEncenderCuandoTemperaturaBaja1() {
-        DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",13,200001,false);
-
-        EstadoSistema estado = new EstadoSistema(/*Completar etc*/);
-        List<Operacion> acciones = controller.accionHabitacion(medicion,estado);
-
-        assertTrue(acciones.isEmpty());
-        //chequear que solo accione 1 switch
-    }
     //crear el estado actual como querramos
     //otro test Estado prendido pero temp baja entoces no hace nada
     //sleep thread para calcular tiempo
@@ -56,7 +45,7 @@ public class ControllerTemperaturaTest {
     @Test
     void noDebeExcederConsumoMaximo() {
         DataSensor medicion = new DataSensor("shellyhtg3-84fce63ad204",28,200001,true);
-        List<Operacion> acciones = controller.accionHabitacion(medicion,controller.obtenerEstadoActual());
+        List<Operacion> acciones = controller.accionHabitacion(medicion, controller.obtenerEstadoActual());
 
         EstadoSistema estado = controller.obtenerEstadoActual();
         assertTrue(estado.getConsumoActual() <= estado.getConsumoMaximo());
@@ -86,6 +75,54 @@ public class ControllerTemperaturaTest {
         boolean esValido = controller.validarConsumoMaximo(acciones);
 
         assertNotNull(esValido);
+    }
+
+    @Test
+    void debeMantenerEncendidoCuandoTemperaturaBaja() {
+        DataSensor medicionFria = new DataSensor("shellyhtg3-84fce63ad204", 13.0f, 200001, true);
+
+        Configuracion config = controller.obtenerEstadoActual().getConfig();
+        EstadoSistema yaEncendido = new EstadoSistema(config);
+
+        EstadoHabitacion hab = yaEncendido.getHabitaciones().stream()
+                .filter(h -> h.getHabitacion().getName().equals("shellyhtg3-84fce63ad204"))
+                .findFirst().orElse(null);
+
+        assertNotNull(hab, "la hab de prueba no se encontro");
+        hab.setSwitchEncendido(true);
+
+        List<Operacion> acciones = controller.accionHabitacion(medicionFria, yaEncendido);
+        assertTrue(acciones.isEmpty(), "No debería generar acciones si el switch ya estaba encendido");
+    }
+
+    @Test
+    void debeActuarSobreHabitacionCorrecta() {
+        // office2 tiene expected temp 21
+        DataSensor medicionFriaO2 = new DataSensor("office2", 15.0f, 200001, true);
+
+        List<Operacion> acciones = controller.accionHabitacion(medicionFriaO2, controller.obtenerEstadoActual());
+
+        assertFalse(acciones.isEmpty()); //ve si genero alguna una accion
+        assertEquals(1, acciones.size()); // ve que sea solo una
+        assertEquals("office2", acciones.get(0).getSrc()); //ve que sea en office2
+        assertTrue(acciones.get(0).getEncendido()); //ve si la prende
+    }
+
+    @Test
+    void debeMantenerApagadoCuandoTemperaturaAlta() {
+
+        //no deberia hacer nada si la temp es alta y el switch ya esta apagado
+        DataSensor medicionCalor = new DataSensor("shellyhtg3-84fce63ad204", 28.0f, 200001, true);
+        EstadoSistema apagado = controller.obtenerEstadoActual();
+
+        EstadoHabitacion hab = apagado.getHabitaciones().stream()
+                .filter(h -> h.getHabitacion().getName().equals("shellyhtg3-84fce63ad204"))
+                .findFirst().get();
+        hab.setSwitchEncendido(false); // aseguramos que esta apagado
+
+        List<Operacion> acciones = controller.accionHabitacion(medicionCalor, apagado);
+
+        assertTrue(acciones.isEmpty());
     }
 
 //    @Test
