@@ -12,6 +12,10 @@ import java.util.List;
 
 public class ControllerTemperatura implements IControllerTemperatura {
 
+    /*
+    EL CONTRATO ES EL QUE INDICA EL CAMBIO DE TARIFA ALTA A BAJA
+    * */
+
     private EstadoSistema estadoSistema;
     //private static final long LIMITE_INACTIVIDAD = 7_200_000L;
 
@@ -37,6 +41,9 @@ public class ControllerTemperatura implements IControllerTemperatura {
             return operaciones;
         }
 
+        List<EstadoHabitacion> habitaciones = estadoSistema.getHabitaciones();
+
+        estadoSistema.setConsumoActual(calcularConsumoActual(habitaciones));
 
         EstadoHabitacion h = buscarHabitacion(estadoSistema.getHabitaciones(), dataSensor.getSrc());
 
@@ -55,8 +62,23 @@ public class ControllerTemperatura implements IControllerTemperatura {
 //        h.setUltimaActualizacion(LocalDateTime.now());
 
         if (h.getHabitacion().getExpectedTemp()>dataSensor.getTemperatura()) {
-            if (validarConsumoMaximo(operaciones)) {
+
+            //INTENTO OPTIMIZACION
+            if(estadoSistema.getConsumoActual() < estadoSistema.getConsumoMaximo()){
+
+                double consumoTot = estadoSistema.getConsumoActual() + h.getConsumo();
+
+                if(consumoTot < estadoSistema.getConsumoMaximo()){
+
+                    operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
+
+                }
+
+            }else{
+
+                //if (validarConsumoMaximo(operaciones)) {
                 //aca iria la optimizacion
+                //}
             }
             operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
         }
@@ -109,6 +131,13 @@ public class ControllerTemperatura implements IControllerTemperatura {
         }
     }
 
+    private double calcularConsumoActual(List<EstadoHabitacion> habitaciones) {
+
+        return habitaciones.stream()
+                .filter(EstadoHabitacion::isSwitchEncendido)
+                .mapToDouble(EstadoHabitacion::getConsumo)
+                .sum();
+    }
 
     @Override
     public EstadoSistema obtenerEstadoActual() {
