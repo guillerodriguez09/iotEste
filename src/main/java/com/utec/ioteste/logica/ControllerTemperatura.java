@@ -7,8 +7,7 @@ import com.utec.ioteste.logica.modelos.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ControllerTemperatura implements IControllerTemperatura {
 
@@ -60,8 +59,22 @@ public class ControllerTemperatura implements IControllerTemperatura {
 //            return operaciones;
 //        }
 //        h.setUltimaActualizacion(LocalDateTime.now());
+        Map<String, Double> difTempAllRooms = new HashMap<>();
+        Map<String, Double> minDiff = conseguirDiffMin(difTempAllRooms);
+
+        for(EstadoHabitacion r :  habitaciones) {
+
+            if(r.isSwitchEncendido()) {
+                double difTem = r.getHabitacion().getExpectedTemp() - r.getTemperaturaActual();
+                difTempAllRooms.put(r.getHabitacion().getName(), difTem);
+            }
+        }
 
         if (h.getHabitacion().getExpectedTemp()>dataSensor.getTemperatura()) {
+
+            double difTemp = h.getHabitacion().getExpectedTemp() - dataSensor.getTemperatura();
+            EstadoHabitacion maxRoom = conseguirMax(habitaciones);
+            //double difTempMax = maxRoom.getHabitacion().getExpectedTemp() - maxRoom.getTemperaturaActual();
 
             //INTENTO OPTIMIZACION
             if(estadoSistema.getConsumoActual() < estadoSistema.getConsumoMaximo()){
@@ -74,7 +87,7 @@ public class ControllerTemperatura implements IControllerTemperatura {
 
                 }
 
-            }else{
+            }else /*if(si diferencia habitacionActual es mayor a diferenciaMenor + 2, apagar habitacion con menor diferencia y prender la que recien llego)*/{
 
                 //if (validarConsumoMaximo(operaciones)) {
                 //aca iria la optimizacion
@@ -131,12 +144,29 @@ public class ControllerTemperatura implements IControllerTemperatura {
         }
     }
 
-    private double calcularConsumoActual(List<EstadoHabitacion> habitaciones) {
+    @Override
+    public double calcularConsumoActual(List<EstadoHabitacion> habitaciones) {
 
         return habitaciones.stream()
                 .filter(EstadoHabitacion::isSwitchEncendido)
                 .mapToDouble(EstadoHabitacion::getConsumo)
                 .sum();
+    }
+
+    public EstadoHabitacion conseguirMax(List<EstadoHabitacion> habitaciones) {
+
+        return habitaciones.stream()
+                .filter(EstadoHabitacion::isSwitchEncendido)
+                .max(Comparator.comparingDouble(EstadoHabitacion::getTemperaturaActual))
+                .orElse(null);
+    }
+
+    //Esto seria para conseguir la diferencia mas chica de todas las habitaciones provistas. Tengo que terminarlo
+    public Map<String, Double> conseguirDiffMin(Map<String, Double> diff) {
+
+        Optional<Map.Entry<String, Double>> minDiff = diff.entrySet().stream().min(Map.Entry.comparingByValue());
+
+        return null;
     }
 
     @Override
