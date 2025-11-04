@@ -73,6 +73,7 @@ public class ControllerTemperatura implements IControllerTemperatura {
         if (h.getHabitacion().getExpectedTemp()>dataSensor.getTemperatura()) {
 
             double difTemp = h.getHabitacion().getExpectedTemp() - dataSensor.getTemperatura();
+            //double difTempMin = minDiff.values().iterator().next();
             EstadoHabitacion maxRoom = conseguirMax(habitaciones);
             //double difTempMax = maxRoom.getHabitacion().getExpectedTemp() - maxRoom.getTemperaturaActual();
 
@@ -87,11 +88,16 @@ public class ControllerTemperatura implements IControllerTemperatura {
 
                 }
 
-            }else /*if(si diferencia habitacionActual es mayor a diferenciaMenor + 2, apagar habitacion con menor diferencia y prender la que recien llego)*/{
+            }else if(difTemp > minDiff.values().iterator().next() + 2){ /*(si diferencia habitacionActual es mayor a diferenciaMenor + 2, apagar habitacion con menor diferencia y prender la que recien llego)*/
 
-                //if (validarConsumoMaximo(operaciones)) {
-                //aca iria la optimizacion
-                //}
+                String key = "Pan";
+                for (Map.Entry<String, Double> entry : minDiff.entrySet()) {
+                    key = entry.getKey();
+                }
+
+                operaciones.add(crearOperacion(key, false));
+                operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
+
             }
             operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
         }
@@ -100,7 +106,6 @@ public class ControllerTemperatura implements IControllerTemperatura {
         }
         return operaciones;
     }
-
 
     @Override
     public boolean validarConsumoMaximo(List<Operacion> acciones) {
@@ -153,6 +158,7 @@ public class ControllerTemperatura implements IControllerTemperatura {
                 .sum();
     }
 
+    @Override
     public EstadoHabitacion conseguirMax(List<EstadoHabitacion> habitaciones) {
 
         return habitaciones.stream()
@@ -161,12 +167,15 @@ public class ControllerTemperatura implements IControllerTemperatura {
                 .orElse(null);
     }
 
-    //Esto seria para conseguir la diferencia mas chica de todas las habitaciones provistas. Tengo que terminarlo
+    //Esto seria para conseguir la diferencia mas chica de todas las habitaciones provistas.
     public Map<String, Double> conseguirDiffMin(Map<String, Double> diff) {
 
-        Optional<Map.Entry<String, Double>> minDiff = diff.entrySet().stream().min(Map.Entry.comparingByValue());
+        Optional<Map.Entry<String, Double>> minDiff = diff.entrySet()
+                .stream().
+                min(Map.Entry.comparingByValue());
 
-        return null;
+        return minDiff.map(entry -> Map.of(entry.getKey(), entry.getValue()))
+                .orElseGet(Map::of);
     }
 
     @Override
