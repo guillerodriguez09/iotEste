@@ -59,16 +59,25 @@ public class ControllerTemperatura implements IControllerTemperatura {
 //            return operaciones;
 //        }
 //        h.setUltimaActualizacion(LocalDateTime.now());
-        Map<String, Double> difTempAllRooms = new HashMap<>();
-        Map<String, Double> minDiff = conseguirDiffMin(difTempAllRooms);
+
+
+        //Map<String, Double> difTempAllRooms = new HashMap<>();
+        //Map<String, Double> minDiff = conseguirDiffMin(difTempAllRooms);
+
+        List<DifTempRooms> difTempAllRooms = new ArrayList<>();
 
         for(EstadoHabitacion r :  habitaciones) {
 
             if(r.isSwitchEncendido()) {
                 double difTem = r.getHabitacion().getExpectedTemp() - r.getTemperaturaActual();
-                difTempAllRooms.put(r.getHabitacion().getName(), difTem);
+                DifTempRooms difTempRoom = new DifTempRooms(r.getHabitacion().getName(), difTem);
+                difTempAllRooms.add(difTempRoom);
             }
         }
+
+        Collections.sort(difTempAllRooms);
+
+        double consumoTot = estadoSistema.getConsumoActual() + h.getConsumo();
 
         if (h.getHabitacion().getExpectedTemp()>dataSensor.getTemperatura()) {
 
@@ -80,24 +89,45 @@ public class ControllerTemperatura implements IControllerTemperatura {
             //INTENTO OPTIMIZACION
             if(estadoSistema.getConsumoActual() < estadoSistema.getConsumoMaximo()){
 
-                double consumoTot = estadoSistema.getConsumoActual() + h.getConsumo();
-
                 if(consumoTot < estadoSistema.getConsumoMaximo()){
 
                     operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
 
                 }
 
-            }else if(difTemp > minDiff.values().iterator().next() + 2){ /*(si diferencia habitacionActual es mayor a diferenciaMenor + 2, apagar habitacion con menor diferencia y prender la que recien llego)*/
+            }else{
 
-                String key = "Pan";
-                for (Map.Entry<String, Double> entry : minDiff.entrySet()) {
-                    key = entry.getKey();
+                while(consumoTot > estadoSistema.getConsumoMaximo()) {
+
+                    if(difTemp > difTempAllRooms.get(0).getDif() + 2) { /*(si diferencia habitacionActual es mayor a diferenciaMenor + 2, apagar habitacion con menor diferencia y prender la que recien llego)*/
+
+                        String src = difTempAllRooms.get(0).getSrc();
+
+                        operaciones.add(crearOperacion(src, false));
+                        operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
+
+                        for (EstadoHabitacion habitacion : habitaciones) {
+
+                            if (src.equals(habitacion.getHabitacion().getName())) {
+
+                                habitacion.setSwitchEncendido(false);
+                                break;
+                            }
+                        }
+
+                        calcularConsumoActual(habitaciones);
+
+                        consumoTot = estadoSistema.getConsumoActual() + h.getConsumo();
+
+                        difTempAllRooms.remove(0);
+                        Collections.sort(difTempAllRooms);
+
+                    }else{
+                        System.out.println("No se puede encender ahora la habitación");
+                        return null;
+                    }
+
                 }
-
-                operaciones.add(crearOperacion(key, false));
-                operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
-
             }
             operaciones.add(crearOperacion(h.getHabitacion().getName(), true));
         }
