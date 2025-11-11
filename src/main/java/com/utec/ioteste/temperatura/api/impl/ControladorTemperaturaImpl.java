@@ -212,12 +212,29 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
     }
 
     private boolean esHoraAltaTarifa() {
-        Calendar cal = Calendar.getInstance();
+        // Forzar zona horaria correcta
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Montevideo"));
         int hora = cal.get(Calendar.HOUR_OF_DAY);
-        
-        // Tarifa alta típicamente de 18 a 22 horas (puedes ajustar según tu tarifa)
-        return hora >= 18 && hora < 22;
+        int minuto = cal.get(Calendar.MINUTE);
+
+        // Tarifa alta de 18:00 a 22:00 (ajustable)
+        int horaInicio = 18;
+        int horaFin = 22;
+
+        // Permite ajustar si querés incluir minutos
+        boolean dentroDeRango = (hora > horaInicio && hora < horaFin)
+                || (hora == horaInicio && minuto >= 0)
+                || (hora == horaFin && minuto == 0);
+
+        if (dentroDeRango) {
+            System.out.println("[TARIFA] Horario actual: " + hora + ":" + String.format("%02d", minuto) + " → TARIFA ALTA");
+        } else {
+            System.out.println("[TARIFA] Horario actual: " + hora + ":" + String.format("%02d", minuto) + " → Tarifa normal");
+        }
+
+        return dentroDeRango;
     }
+
 
     public void setManejadorMqtt(ManejadorMQTT manejadorMqtt) {
         this.manejadorMqtt = manejadorMqtt;
