@@ -21,7 +21,7 @@ services:
 
   simulator:
     build:
-      context: ../../Documents/GitHub/iotEste/simulador/blackBox
+      context: ..iotEste/simulador/blackBox
     container_name: simulator-iot
     ports:
       - "8080:8080"
