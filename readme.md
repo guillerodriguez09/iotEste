@@ -23,6 +23,7 @@ Desde la carpeta principal del controlador:
 
 ```bash
 mvn clean compile
+mvn clean package -DskipTests  
 ```
 
 ---
