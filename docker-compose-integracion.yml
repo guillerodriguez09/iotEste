@@ -1,0 +1,79 @@
+version: "3.8"
+name: blackbox-iot-stack
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto-iot
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-logs:/mosquitto/log
+    networks:
+      - iot-network
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1883 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  simulator:
+    build:
+      context: ../../Documents/GitHub/iotEste/simulador/blackBox
+    container_name: simulator-iot
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    environment:
+      MQTT_URL: tcp://mosquitto:1883
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+      SIMULATOR_CONFIG: /config/configuracion.json
+    volumes:
+      - ./config/configuracion.json:/config/configuracion.json:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - iot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  controlador-temperatura:
+    build:
+      context: .
+    container_name: controlador-temp
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      simulator:
+        condition: service_healthy
+    environment:
+      MQTT_BROKER: tcp://mosquitto:1883
+      CONFIG_FILE: /config/sitio.json
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./config/sitio.json:/config/sitio.json:ro
+      - ./logs:/app/logs
+    networks:
+      - iot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep java || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mosquitto-data:
+  mosquitto-logs:
+
+networks:
+  iot-network:
+    driver: bridge
