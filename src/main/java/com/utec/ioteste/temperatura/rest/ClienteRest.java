@@ -9,28 +9,23 @@ public class ClienteRest {
     private final ObjectMapper mapeador = new ObjectMapper();
     private final int tiempoEsperaMs = 5000;
 
-    /**
-     * Envía comando para encender/apagar un switch.
-     * @param urlSwitch URL del switch (ej: http://192.168.1.100/rpc)
-     * @param encendido true para encender, false para apagar
-     * @return true si fue exitoso, false si hubo error
-     */
     public boolean enviarComando(String urlSwitch, boolean encendido) {
         try {
             URL url;
             String payload;
 
-            if (urlSwitch.contains("simulator:8080")) {
-                // ✅ Para el simulador: POST directo, sin body
-                url = new URL(urlSwitch + (encendido ? "/on" : "/off"));
-                payload = ""; // nada en el cuerpo
+            if (urlSwitch.contains("simulator")) {
+                url = new URL(urlSwitch);
+                payload = String.format("{\"state\": %s}", encendido);
             } else {
-                // ✅ Para los Shelly reales
+                // Para los Shelly reales
                 url = new URL(urlSwitch);
                 payload = crearPayloadSwitch(encendido);
             }
 
 
+            //borrar
+            System.out.println("[DEBUG] Enviando a URL: " + url + " con payload: " + payload);
             HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
             conexion.setRequestMethod("POST");
             conexion.setRequestProperty("Content-Type", "application/json");
@@ -62,18 +57,9 @@ public class ClienteRest {
     }
 
 
-    /**
-     * Obtiene el estado actual del switch.
-     * @param urlSwitch URL del switch
-     * @return true si está encendido, false si está apagado o hay error
-     */
     public boolean obtenerEstado(String urlSwitch) {
         try {
-            String urlEstado = urlSwitch.contains("simulator:8080") 
-                ? urlSwitch + "/status"
-                : urlSwitch;
-            
-            URL url = new URL(urlEstado);
+            URL url = new URL(urlSwitch);
             HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
             conexion.setRequestMethod("GET");
             conexion.setConnectTimeout(tiempoEsperaMs);
@@ -83,22 +69,21 @@ public class ClienteRest {
             if (codigoRespuesta == 200) {
                 String respuesta = new String(conexion.getInputStream().readAllBytes());
                 var json = mapeador.readTree(respuesta);
-                
+
                 boolean estado;
-                if (json.has("ison")) {
-                    // Formato simulador
+                if (json.has("state")) {
+                    estado = json.get("state").asBoolean(false);
+                } else if (json.has("ison")) {
                     estado = json.get("ison").asBoolean(false);
                 } else if (json.has("output")) {
-                    // Formato Shelly
                     estado = json.get("output").asBoolean(false);
                 } else {
                     estado = false;
                 }
-                
                 conexion.disconnect();
                 return estado;
             }
-            
+
             conexion.disconnect();
             return false;
         } catch (Exception e) {
@@ -106,6 +91,7 @@ public class ClienteRest {
             return false;
         }
     }
+
 
     private String crearPayloadSwitch(boolean encendido) throws Exception {
         String json = String.format(

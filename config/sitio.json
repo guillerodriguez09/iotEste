@@ -1,6 +1,6 @@
 {
   "site": "oficina_pruebas",
-  "maxEnergy": "14kWh",
+  "maxEnergy": "14 kWh",
   "timeSlot": {
     "contractType": "std",
     "refreshPeriod": "10000 ms"
@@ -10,24 +10,24 @@
       "id": "hab1",
       "name": "office1",
       "expectedTemp": "22",
-      "energy": "2kWh",
-      "switch": "http://simulator:8080/switch/1",
+      "energy": "2 kWh",
+      "switch": "http://simulator-iot:8080/switch/1",
       "sensor": "sim/ht/1"
     },
     {
       "id": "hab2",
       "name": "office2",
       "expectedTemp": "21",
-      "energy": "2kWh",
-      "switch": "http://simulator:8080/switch/2",
+      "energy": "2 kWh",
+      "switch": "http://simulator-iot:8080/switch/2",
       "sensor": "sim/ht/2"
     },
     {
       "id": "hab3",
       "name": "office3",
       "expectedTemp": "21",
-      "energy": "2kWh",
-      "switch": "http://simulator:8080/switch/3",
+      "energy": "2 kWh",
+      "switch": "http://simulator-iot:8080/switch/3",
       "sensor": "sim/ht/3"
     }
   ]

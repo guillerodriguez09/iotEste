@@ -34,6 +34,7 @@ services:
       SIMULATOR_CONFIG: /config/configuracion.json
     volumes:
       - ./config/configuracion.json:/config/configuracion.json:ro
+      - ./logs/simulator:/logs
     ports:
       - "8080:8080"
     networks:
@@ -65,7 +66,7 @@ services:
       - iot-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pgrep java || exit 1"]
+      test: [ "CMD-SHELL", "nc -z mosquitto 1883 || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -76,4 +77,6 @@ volumes:
 
 networks:
   iot-network:
+    name: blackbox-iot-net
     driver: bridge
+
