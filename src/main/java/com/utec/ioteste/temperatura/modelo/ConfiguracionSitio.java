@@ -1,27 +1,39 @@
 package com.utec.ioteste.temperatura.modelo;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfiguracionSitio {
+
     private final String nombreSitio;
-    private final int energiaMaximakWh; // en Wh
+    private final double energiaMaximaKWh;
     private final int periodoRefreshMs;
+    private final String tipoContrato;
     private final List<Habitacion> habitaciones;
 
-    public ConfiguracionSitio(String nombreSitio, int energiaMaximakWh,
-                              int periodoRefreshMs, List<Habitacion> habitaciones) {
+    public ConfiguracionSitio(String nombreSitio,
+                              double energiaMaximaKWh,
+                              int periodoRefreshMs,
+                              String tipoContrato,
+                              List<Habitacion> habitaciones) {
+
         this.nombreSitio = nombreSitio;
-        this.energiaMaximakWh = energiaMaximakWh;
+        this.energiaMaximaKWh = energiaMaximaKWh;
         this.periodoRefreshMs = periodoRefreshMs;
+        this.tipoContrato = tipoContrato;
         this.habitaciones = new ArrayList<>(habitaciones);
     }
 
     public String obtenerNombreSitio() { return nombreSitio; }
-    public int obtenerEnergiaMaximaWh() { return energiaMaximakWh; }
+    public double obtenerEnergiaMaximaKWh() { return energiaMaximaKWh; }
     public int obtenerPeriodoRefreshMs() { return periodoRefreshMs; }
-    public List<Habitacion> obtenerHabitaciones() { return new ArrayList<>(habitaciones); }
+    public String obtenerTipoContrato() { return tipoContrato; }
+
+    public List<Habitacion> obtenerHabitaciones() {
+        return new ArrayList<>(habitaciones);
+    }
 
     public void agregarHabitacion(Habitacion habitacion) {
-        this.habitaciones.add(habitacion);
+        habitaciones.add(habitacion);
     }
 }

@@ -32,7 +32,7 @@ public class AplicacionControlTemperatura {
             CargadorConfiguracion cargador = new CargadorConfiguracion();
             ConfiguracionSitio config = cargador.cargarDesdeArchivo(rutaConfig);
             System.out.println("\n✓ Configuración cargada: " + config.obtenerNombreSitio());
-            System.out.println("  - Energía máxima: " + config.obtenerEnergiaMaximaWh() + " kWh");
+            System.out.println("  - Energía máxima: " + config.obtenerEnergiaMaximaKWh() + " kWh");
             System.out.println("  - Habitaciones: " + config.obtenerHabitaciones().size());
 
             // Crear cliente REST

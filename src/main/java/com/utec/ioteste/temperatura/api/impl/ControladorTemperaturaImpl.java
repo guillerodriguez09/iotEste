@@ -1,5 +1,6 @@
 package com.utec.ioteste.temperatura.api.impl;
 
+import com.utec.energy.EnergyCost;
 import com.utec.ioteste.temperatura.api.ControladorTemperatura;
 import com.utec.ioteste.temperatura.modelo.*;
 import com.utec.ioteste.temperatura.rest.ClienteRest;
@@ -94,9 +95,34 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
 
     @Override
     public AccionTemperatura obtenerDecision(String idHabitacion) {
-        return accionesActuales.getOrDefault(idHabitacion, 
-            new AccionTemperatura(idHabitacion, false, "Sin decisión"));
+        // Buscar la habitación en la configuración
+        Habitacion hab = configuracion.obtenerHabitaciones().stream()
+                .filter(h -> h.obtenerNombre().equals(idHabitacion))
+                .findFirst()
+                .orElse(null);
+
+        if (hab == null) {
+            return new AccionTemperatura(idHabitacion, false, "Habitación no encontrada");
+        }
+
+        double tempActual = temperaturasActuales.getOrDefault(hab.obtenerNombre(), hab.obtenerTemperaturaEsperada());
+
+        double tempEsperada = hab.obtenerTemperaturaEsperada();
+
+        boolean encender = necesitaCalefaccion(tempActual, tempEsperada);
+
+        String motivo = encender
+                ? "Temperatura actual (" + tempActual + ") menor a la esperada (" + tempEsperada + ")"
+                : "Temperatura en rango";
+
+        return new AccionTemperatura(
+                hab.obtenerNombre(),
+                encender,
+                motivo
+        );
     }
+
+
 
     @Override
     public List<AccionTemperatura> obtenerAccionesPendientes() {
@@ -110,7 +136,7 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
 
     private void ejecutarControlTemperatura() {
         try {
-            boolean tarifaAlta = esHoraAltaTarifa();
+            boolean tarifaAlta = esHoraAltaTarifa(configuracion.obtenerTipoContrato());
             
             if (tarifaAlta) {
                 // TARIFA ALTA: Apagar TODO para evitar consumo
@@ -136,7 +162,7 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
                 }
                 
                 // Ajustar si hay limitación de energía
-                if (consumoTotal > configuracion.obtenerEnergiaMaximaWh()) {
+                if (consumoTotal > configuracion.obtenerEnergiaMaximaKWh()) {
                     ajustarPorLimitacionEnergia(habitacionesAEncender);
                 } else {
                     // Ejecutar acciones sin limitación
@@ -194,7 +220,7 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
         Set<String> habitacionesAEncender = new HashSet<>();
         
         for (Habitacion hab : habitaciones) {
-            if (consumoAcumulado + hab.obtenerConsumoWh() <= configuracion.obtenerEnergiaMaximaWh()) {
+            if (consumoAcumulado + hab.obtenerConsumoWh() <= configuracion.obtenerEnergiaMaximaKWh()) {
                 consumoAcumulado += hab.obtenerConsumoWh();
                 habitacionesAEncender.add(hab.obtenerNombre());
             }
@@ -222,28 +248,21 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
         }
     }
     */
-    private boolean esHoraAltaTarifa() {
-        // Forzar zona horaria correcta
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Montevideo"));
-        int hora = cal.get(Calendar.HOUR_OF_DAY);
-        int minuto = cal.get(Calendar.MINUTE);
+    private boolean esHoraAltaTarifa(String tipoContrato) {
+        // Obtener zona energética según el tipo de contrato
+        EnergyCost.EnergyZone zona = EnergyCost.zonaEnergiActual(tipoContrato);
 
-        // Tarifa alta de 18:00 a 22:00 (ajustable)
-        int horaInicio = 18;
-        int horaFin = 22;
+        // Consideramos tarifa alta cuando la zona es PEAK
+        boolean esAlta = zona.actual() == EnergyCost.PEAK;
 
-        // Permite ajustar si querés incluir minutos
-        boolean dentroDeRango = (hora > horaInicio && hora < horaFin)
-                || (hora == horaInicio && minuto >= 0)
-                || (hora == horaFin && minuto == 0);
-
-        if (dentroDeRango) {
-            System.out.println("[TARIFA] Horario actual: " + hora + ":" + String.format("%02d", minuto) + " → TARIFA ALTA");
+        // Logging
+        if (esAlta) {
+            System.out.println("[TARIFA] " + zona.obtenerDescripcion() + " → TARIFA ALTA");
         } else {
-            System.out.println("[TARIFA] Horario actual: " + hora + ":" + String.format("%02d", minuto) + " → Tarifa normal");
+            System.out.println("[TARIFA] " + zona.obtenerDescripcion() + " → Tarifa normal");
         }
 
-        return dentroDeRango;
+        return esAlta;
     }
 
 

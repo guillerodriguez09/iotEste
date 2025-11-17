@@ -25,7 +25,7 @@ public class TestIntegracionCompleto {
     
     @BeforeEach
     public void preparar() {
-        configuracion = new ConfiguracionSitio("integracion" ,10,1000,new ArrayList<>());
+        configuracion = new ConfiguracionSitio("integracion" ,10,1000,"std",new ArrayList<>());
         configuracion.agregarHabitacion(new Habitacion(
             "sala1", 22.0, 2, "http://switch1",  "s1"
         ));
