@@ -9,6 +9,7 @@ public class EnergyCost {
      * Contrato para pruebas, cambia cada 30 segundos.
      */
     public final static String TEST_CONTRACT_30S = "testContract";
+    public final static String TEST_CONTRACT_30SB = "testContract30";
 
     /**
      * Tarifa baja - Llano
@@ -24,6 +25,7 @@ public class EnergyCost {
      * Duración de la Zona para validar.
      */
     private final static long ZONE_DURATION = 1000 * 60 * 30;
+    private final static long ZONE_DURATION_TEST = 1000 * 30;
 
     /**
      * Indica el tipo de Tarifa actual. También indica cuando se va a activar una nueva tarifa y cuál va a ser.
@@ -55,6 +57,13 @@ public class EnergyCost {
             int zone = (int) (base % 2);
             int nextZone = (zone + 1) % 2;
             long nextZoneTS = (base + 1) * ZONE_DURATION;
+
+            return new EnergyZone(zone, nextZone, nextZoneTS);
+        }else if(TEST_CONTRACT_30SB.equals(contract)) {
+            long base = ts / ZONE_DURATION_TEST;
+            int zone = (int) (base % 2);
+            int nextZone = (zone + 1) % 2;
+            long nextZoneTS = (base + 1) * ZONE_DURATION_TEST;
 
             return new EnergyZone(zone, nextZone, nextZoneTS);
         } else {
