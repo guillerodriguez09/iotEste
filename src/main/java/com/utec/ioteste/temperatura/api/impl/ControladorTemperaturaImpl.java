@@ -211,6 +211,17 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
         return (esperada - actual) > HISTERESIS;
     }
 
+    /* Esto con la clase que nos paso el profe, o directamente se puede llamar a energyZone al inicio de
+    la funcion ejecutarControlTemperatura pasandole tanto el tipo de contrato y el ts actual
+    private boolean esHoraPico(String contrato, long ts){
+        int res = energyZone(contrato, ts);
+        if(res == 1) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+    */
     private boolean esHoraAltaTarifa() {
         // Forzar zona horaria correcta
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Montevideo"));

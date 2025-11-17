@@ -21,7 +21,7 @@ public class ManejadorMQTT implements MqttCallback {
     public void conectar(String idCliente) throws MqttException {
         clienteMqtt = new MqttClient(servidorMqtt, idCliente + "_" + System.currentTimeMillis());
         MqttConnectOptions opciones = new MqttConnectOptions();
-        opciones.setCleanSession(true);
+        opciones.setCleanSession(true); //AL ESTAR ESTO EN TRUE SE PIERDEN LAS SUSCRIPCIONES EN CASO DE CAIDA Y RECONEXION, HAY QUE PONERLO EN false
         opciones.setAutomaticReconnect(true);
 
         clienteMqtt.setCallback(this);

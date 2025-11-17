@@ -53,7 +53,7 @@ public class TestControladorTemperatura {
         controlador.procesarMedicionTemperatura("sensor", 18.0);
         
         var accion = controlador.obtenerDecision("sala");
-        assertTrue(accion.estaEncendido() || !accion.estaEncendido()); // Lógica temporal
+        assertTrue(accion.estaEncendido()); // Lógica temporal
         
         controlador.detener();
     }
