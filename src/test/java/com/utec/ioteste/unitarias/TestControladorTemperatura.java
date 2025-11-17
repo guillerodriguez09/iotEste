@@ -24,7 +24,7 @@ public class TestControladorTemperatura {
     
     @BeforeEach
     public void preparar() {
-        configuracion = new ConfiguracionSitio("pruebas", 10, 1000,"std",new ArrayList<>());
+        configuracion = new ConfiguracionSitio("pruebas", 10, 1000,"testContract",new ArrayList<>());
         configuracion.agregarHabitacion(new Habitacion(
             "sala", 22.0, 2, "http://switch", "sensor"
         ));
