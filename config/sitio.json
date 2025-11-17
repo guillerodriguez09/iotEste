@@ -2,7 +2,7 @@
   "site": "oficina_pruebas",
   "maxEnergy": "14 kWh",
   "timeSlot": {
-    "contractType": "std",
+    "contractType": "testContract",
     "refreshPeriod": "10000 ms"
   },
   "rooms": [

@@ -162,7 +162,7 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
                 }
                 
                 // Ajustar si hay limitación de energía
-                if (consumoTotal > configuracion.obtenerEnergiaMaximaKWh()) {
+                if (consumoTotal < configuracion.obtenerEnergiaMaximaKWh()) {
                     ajustarPorLimitacionEnergia(habitacionesAEncender);
                 } else {
                     // Ejecutar acciones sin limitación
