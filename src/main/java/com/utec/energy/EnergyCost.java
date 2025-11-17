@@ -1,65 +1,64 @@
 package com.utec.energy;
-import java.time.LocalDateTime;
 
 /**
- * Clase para determinar tarifas de energía según horario.
- * Basado en estructura de tarifas españolas (Low/Mid/Peak).
+ * Informa Costo de la Energía y cuando cambia de uno costo a otro.
  */
 public class EnergyCost {
 
-    public static final int LOW = 0;    // Tarifa baja
-    public static final int MID = 1;    // Tarifa media
-    public static final int PEAK = 2;   // Tarifa pico
+    /**
+     * Contrato para pruebas, cambia cada 30 segundos.
+     */
+    public final static String TEST_CONTRACT_30S = "testContract";
 
     /**
-     * Obtiene la zona de energía actual según el contrato.
+     * Tarifa baja - Llano
      */
-    public static EnergyZone zonaEnergiActual(String tipoContrato) {
-        LocalDateTime ahora = LocalDateTime.now();
-        int hora = ahora.getHour();
+    public final static int LOW = 0;
 
-        if ("DISCRIMINACION_HORARIA".equalsIgnoreCase(tipoContrato)) {
-            // Horario típico español
-            // 00-08: Tarifa baja
-            // 08-14: Tarifa pico
-            // 14-22: Tarifa media
-            // 22-00: Tarifa baja
-            if (hora < 8 || hora >= 22) {
-                return new EnergyZone(LOW, "Tarifa baja (noche)");
-            } else if (hora >= 8 && hora < 14) {
-                return new EnergyZone(PEAK, "Tarifa pico (mañana)");
-            } else {
-                return new EnergyZone(MID, "Tarifa media (tarde)");
-            }
-        } else {
-            // Contrato simple: siempre tarifa media
-            return new EnergyZone(MID, "Tarifa única");
-        }
+    /**
+     * Tarifa alta - Punta
+     */
+    public final static int HIGH = 1;
+
+    /**
+     * Duración de la Zona para validar.
+     */
+    private final static long ZONE_DURATION = 1000 * 60 * 30;
+
+    /**
+     * Indica el tipo de Tarifa actual. También indica cuando se va a activar una nueva tarifa y cuál va a ser.
+     * </p>
+     * Tarifas: 0 -> BAJA (tarifa económica), 1 -> ALTA (tarifa cara)
+     *
+     * @param current Tipo de Tarifa actual
+     * @param next    Próxima Tarifa que va a activarse
+     * @param nextTS  Cuando se va a activar la nueva tarifa como milisegundos desde January 1, 1970 UTC
+     *                (misma unidad que System.currentTimeMillis())
+     */
+    public record EnergyZone(int current, int next, long nextTS) {
     }
 
     /**
-     * Zona de energía con información de tarifa.
+     * Informa la tarifa actual y cuándo se cambia a la siguiente tarifa, para el instante actual.
      */
-    public static class EnergyZone {
-        private final int tarifa;
-        private final String descripcion;
+    public static EnergyZone currentEnergyZone(String contract) {
+        return energyZone(contract, System.currentTimeMillis());
+    }
 
-        public EnergyZone(int tarifa, String descripcion) {
-            this.tarifa = tarifa;
-            this.descripcion = descripcion;
-        }
+    /**
+     * Informa la tarifa actual y cuándo se cambia a la siguiente tarifa, para el tipo de contrato y ts
+     * recibido como parámetro.
+     */
+    public static EnergyZone energyZone(String contract, long ts) {
+        if (TEST_CONTRACT_30S.equals(contract)) {
+            long base = ts / ZONE_DURATION;
+            int zone = (int) (base % 2);
+            int nextZone = (zone + 1) % 2;
+            long nextZoneTS = (base + 1) * ZONE_DURATION;
 
-        public int actual() {
-            return tarifa;
-        }
-
-        public String obtenerDescripcion() {
-            return descripcion;
-        }
-
-        @Override
-        public String toString() {
-            return descripcion + " (" + tarifa + ")";
+            return new EnergyZone(zone, nextZone, nextZoneTS);
+        } else {
+            throw new IllegalArgumentException("Invalid contract value: " + contract);
         }
     }
 }

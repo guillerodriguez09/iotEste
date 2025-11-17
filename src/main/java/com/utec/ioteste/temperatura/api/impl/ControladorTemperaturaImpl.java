@@ -249,21 +249,19 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
     }
     */
     private boolean esHoraAltaTarifa(String tipoContrato) {
-        // Obtener zona energética según el tipo de contrato
-        EnergyCost.EnergyZone zona = EnergyCost.zonaEnergiActual(tipoContrato);
+        EnergyCost.EnergyZone zona = EnergyCost.currentEnergyZone(tipoContrato);
 
-        // Consideramos tarifa alta cuando la zona es PEAK
-        boolean esAlta = zona.actual() == EnergyCost.PEAK;
+        boolean esAlta = zona.current() == EnergyCost.HIGH;
 
-        // Logging
         if (esAlta) {
-            System.out.println("[TARIFA] " + zona.obtenerDescripcion() + " → TARIFA ALTA");
+            System.out.println("[TARIFA] Tarifa ALTA (Punta)");
         } else {
-            System.out.println("[TARIFA] " + zona.obtenerDescripcion() + " → Tarifa normal");
+            System.out.println("[TARIFA] Tarifa BAJA (Llano)");
         }
 
         return esAlta;
     }
+
 
 
     public void setManejadorMqtt(ManejadorMQTT manejadorMqtt) {
