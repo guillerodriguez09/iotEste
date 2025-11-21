@@ -51,10 +51,12 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
             manejadorMqtt.conectar("controlador-temperatura");
 
             for (Habitacion hab : configuracion.obtenerHabitaciones()) {
+                String nom = hab.obtenerNombre();
                 String sensor = hab.obtenerSensor();
                 if (sensor != null && !sensor.isEmpty()) {
-                    manejadorMqtt.suscribirse(sensor);
-                    System.out.println("[MQTT] Suscrito a: " + sensor);
+                    String tema = sensor + "/" + nom;
+                    manejadorMqtt.suscribirse(tema);
+                    System.out.println("[MQTT] Suscrito a: " +tema);
                 }
             }
 

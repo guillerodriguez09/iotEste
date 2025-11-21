@@ -35,7 +35,8 @@ public class TemperaturaControlTest {
         oficina2 = new Habitacion("oficina2", 21.0, 2000, "http://localhost:8080/switch/2", "mqtt:topic2");
 
         List<Habitacion> habitaciones = Arrays.asList(oficina1, oficina2);
-        configuracion = new ConfiguracionSitio("sitio-prueba", 4000, 10000,"std", habitaciones);
+        TimeSlotConfig  ts = new TimeSlotConfig("std",10000);
+        configuracion = new ConfiguracionSitio("sitio-prueba", 4000, ts, habitaciones);
 
         controlador = new ControladorTemperaturaImpl(configuracion, mqttMock, restMock);
     }
@@ -76,7 +77,8 @@ public class TemperaturaControlTest {
         oficina1 = new Habitacion("oficina1", 22.0, 3000, "url1", "s1");
         oficina2 = new Habitacion("oficina2", 22.0, 3000, "url2", "s2");
 
-        configuracion = new ConfiguracionSitio("sitio-prueba", 4000, 10000,"std", Arrays.asList(oficina1, oficina2));
+        TimeSlotConfig  ts = new TimeSlotConfig("std",10000);
+        configuracion = new ConfiguracionSitio("sitio-prueba", 4000, ts, Arrays.asList(oficina1, oficina2));
         controlador = new ControladorTemperaturaImpl(configuracion, mqttMock, restMock);
 
         controlador.procesarMedicionTemperatura("s1", 19.0);

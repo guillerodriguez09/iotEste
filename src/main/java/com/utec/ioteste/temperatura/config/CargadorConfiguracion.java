@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import com.utec.ioteste.temperatura.modelo.Habitacion;
 import com.utec.ioteste.temperatura.modelo.ConfiguracionSitio;
+import com.utec.ioteste.temperatura.modelo.TimeSlotConfig;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -45,11 +46,11 @@ public class CargadorConfiguracion {
             habitaciones.add(analizarHabitacion(habitacionJson));
         }
 
+        TimeSlotConfig ts = new TimeSlotConfig(franjaHoraria.get("contractType").getAsString(),periodoRefreshMs);
         return new ConfiguracionSitio(
                 nombreSitio,
                 energiaMaximaKWh,
-                periodoRefreshMs,
-                franjaHoraria.get("contractType").getAsString(),
+                ts,
                 habitaciones
         );
     }

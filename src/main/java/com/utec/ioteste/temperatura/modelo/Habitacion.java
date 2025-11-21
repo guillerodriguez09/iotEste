@@ -2,6 +2,8 @@ package com.utec.ioteste.temperatura.modelo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.utec.ioteste.temperatura.config.EnergyStringDeserializer;
 
 public class Habitacion {
     private final String nombre;
@@ -14,6 +16,7 @@ public class Habitacion {
     public Habitacion(
             @JsonProperty("name") String nombre,
             @JsonProperty("expectedTemp") double temperaturaEsperada,
+            @JsonDeserialize(using = EnergyStringDeserializer.class)
             @JsonProperty("energy") double consumokWh,
             @JsonProperty("switch") String urlSwitch,
             @JsonProperty("sensor") String sensor

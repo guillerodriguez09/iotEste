@@ -22,7 +22,7 @@ public class AplicacionControlTemperatura {
             if (servidorMqtt == null) servidorMqtt = "tcp://mosquitto:1883";
 
             String urlApi = System.getenv("SITE_API");
-            if (urlApi == null) urlApi = "http://localhost:8080";
+            if (urlApi == null) urlApi = "http://simulator-iot:8080";
 
             System.out.println("Configuración:");
             System.out.println("  - Archivo config: " + rutaConfig);

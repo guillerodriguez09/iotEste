@@ -3,6 +3,7 @@ package com.utec.ioteste.unitarias;
 import com.utec.ioteste.temperatura.api.impl.ControladorTemperaturaImpl;
 import com.utec.ioteste.temperatura.modelo.ConfiguracionSitio;
 import com.utec.ioteste.temperatura.modelo.Habitacion;
+import com.utec.ioteste.temperatura.modelo.TimeSlotConfig;
 import com.utec.ioteste.temperatura.mqtt.ManejadorMQTT;
 import com.utec.ioteste.temperatura.rest.ClienteRest;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,8 @@ public class TestControladorTemperatura {
     
     @BeforeEach
     public void preparar() {
-        configuracion = new ConfiguracionSitio("pruebas", 10, 1000,"testContract",new ArrayList<>());
+        TimeSlotConfig  ts = new TimeSlotConfig("testContract",10000);
+        configuracion = new ConfiguracionSitio("pruebas", 10, ts,new ArrayList<>());
         configuracion.agregarHabitacion(new Habitacion(
             "sala", 22.0, 2, "http://switch", "sensor"
         ));

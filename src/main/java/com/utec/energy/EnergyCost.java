@@ -10,6 +10,8 @@ public class EnergyCost {
      */
     public final static String TEST_CONTRACT_30S = "testContract";
     public final static String TEST_CONTRACT_30SB = "testContract30";
+    public final static String STD_CONTRACT = "std";
+
 
     /**
      * Tarifa baja - Llano
@@ -52,14 +54,14 @@ public class EnergyCost {
      * recibido como parámetro.
      */
     public static EnergyZone energyZone(String contract, long ts) {
-        if (TEST_CONTRACT_30S.equals(contract)) {
+        if (TEST_CONTRACT_30S.equals(contract) ) {
             long base = ts / ZONE_DURATION;
             int zone = (int) (base % 2);
             int nextZone = (zone + 1) % 2;
             long nextZoneTS = (base + 1) * ZONE_DURATION;
 
             return new EnergyZone(zone, nextZone, nextZoneTS);
-        }else if(TEST_CONTRACT_30SB.equals(contract)) {
+        }else if(TEST_CONTRACT_30SB.equals(contract)|| STD_CONTRACT.equals(contract)) {
             long base = ts / ZONE_DURATION_TEST;
             int zone = (int) (base % 2);
             int nextZone = (zone + 1) % 2;
