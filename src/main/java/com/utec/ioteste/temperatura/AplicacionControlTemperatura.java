@@ -14,42 +14,55 @@ public class AplicacionControlTemperatura {
             System.out.println("║    Control de Temperatura - IoT Domótica IoTEste      ║");
             System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
-            // Configuración
+            //   Configuración por variables
             String rutaConfig = System.getenv("CONFIG_FILE");
-            if (rutaConfig == null) {
-                rutaConfig = "/config/sitio.json";
-            }
+            if (rutaConfig == null) rutaConfig = "/config/sitio.json";
+
             String servidorMqtt = System.getenv("MQTT_BROKER");
-            if (servidorMqtt == null) {
-                servidorMqtt = "tcp://mosquitto:1883";
-            }
+            if (servidorMqtt == null) servidorMqtt = "tcp://mosquitto:1883";
+
+            String urlApi = System.getenv("SITE_API");
+            if (urlApi == null) urlApi = "http://localhost:8080";
 
             System.out.println("Configuración:");
             System.out.println("  - Archivo config: " + rutaConfig);
             System.out.println("  - Servidor MQTT: " + servidorMqtt);
+            System.out.println("  - API Site-config: " + urlApi);
 
-            // Cargar configuración
+            //   Cargar configuración inicial
             CargadorConfiguracion cargador = new CargadorConfiguracion();
             ConfiguracionSitio config = cargador.cargarDesdeArchivo(rutaConfig);
-            System.out.println("\n✓ Configuración cargada: " + config.obtenerNombreSitio());
+
+            System.out.println("\n✓ Configuración LOCAL cargada: " + config.obtenerNombreSitio());
             System.out.println("  - Energía máxima: " + config.obtenerEnergiaMaximaKWh() + " kWh");
             System.out.println("  - Habitaciones: " + config.obtenerHabitaciones().size());
 
-            // Crear cliente REST
+            //   Intentar obtener /site-config
             ClienteRest clienteRest = new ClienteRest();
+            ConfiguracionSitio configRemota = clienteRest.obtenerSiteConfig(urlApi);
 
-            // Crear controlador primero (null temporal para MQTT)
-            ControladorTemperaturaImpl controlador = new ControladorTemperaturaImpl(config, null, clienteRest);
+            if (configRemota != null) {
+                System.out.println("\n✓ Configuración REMOTA obtenida desde /site-config");
+                System.out.println("  - Sitio: " + configRemota.getSite());
+                System.out.println("  - Máxima energía: " + configRemota.getMaxEnergy());
+                System.out.println("  - Habitaciones: " + configRemota.getRooms().size());
+                config = configRemota;  // Reemplazar config local
+            } else {
+                System.err.println("\n⚠ No se pudo obtener configuración remota. Se usa la del archivo.");
+            }
 
-            // Crear manejador MQTT pasando el controlador ya creado
+            //   Crear controlador
+            ControladorTemperaturaImpl controlador =
+                    new ControladorTemperaturaImpl(config, null, clienteRest);
+
+            //   Crear manejador MQTT
             ManejadorMQTT manejadorMqtt = new ManejadorMQTT(servidorMqtt, controlador);
             controlador.setManejadorMqtt(manejadorMqtt);
 
-            // Iniciar sistema
+            //   Iniciar sistema
             System.out.println("\n[INICIANDO] Sistema de control de temperatura...");
             controlador.iniciar();
 
-            // Hook para detener graceful
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("\n[DETENIENDO] Cerrando aplicación...");
                 controlador.detener();
@@ -61,10 +74,11 @@ public class AplicacionControlTemperatura {
             System.out.println("Sistema activo. Presione Ctrl+C para detener");
             System.out.println("=".repeat(55) + "\n");
 
-            // Mantener aplicación activa
+            //   Loop principal
             while (true) {
                 Thread.sleep(60000);
                 var estado = controlador.obtenerEstado();
+
                 System.out.printf("[ESTADO] Mediciones: %d | Acciones: %d | Errores: %d%n",
                         estado.medicionesRecibidas(),
                         estado.accionesEjecutadas(),

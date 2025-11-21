@@ -44,7 +44,6 @@ public class CargadorConfiguracion {
             habitaciones.add(analizarHabitacion(habitacionJson));
         }
 
-        // ❗ Tu constructor actual NO tiene parámetro tipoContrato
         return new ConfiguracionSitio(
                 nombreSitio,
                 energiaMaximaKWh,
@@ -64,7 +63,6 @@ public class CargadorConfiguracion {
         String urlSwitch = json.get("switch").getAsString();
         String sensor = json.get("sensor").getAsString();
 
-        // Corrección de localhost
         if (urlSwitch.contains("localhost")) {
             String corregida = urlSwitch.replace("localhost", "simulator");
             System.out.println("[INFO] Corrigiendo URL de switch: " + urlSwitch + " -> " + corregida);

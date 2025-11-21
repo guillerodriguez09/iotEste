@@ -1,6 +1,7 @@
 package com.utec.ioteste.temperatura.modelo;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ConfiguracionSitio {
@@ -35,5 +36,19 @@ public class ConfiguracionSitio {
 
     public void agregarHabitacion(Habitacion habitacion) {
         habitaciones.add(habitacion);
+    }
+
+    public String getMaxEnergy() {
+        return String.format("%.2f", energiaMaximaKWh);
+    }
+
+
+    public String getSite() {
+        return nombreSitio;
+    }
+
+
+    public List<Habitacion> getRooms() {
+        return habitaciones;
     }
 }

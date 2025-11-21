@@ -3,7 +3,7 @@ package com.utec.ioteste.temperatura.modelo;
 public class Habitacion {
     private final String nombre;
     private final double temperaturaEsperada;
-    private final int consumokWh; // en Wh
+    private final int consumokWh;
     private final String urlSwitch;
     private final String sensor;
 

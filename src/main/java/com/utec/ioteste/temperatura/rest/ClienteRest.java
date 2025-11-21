@@ -4,6 +4,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.OutputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.utec.ioteste.temperatura.modelo.ConfiguracionSitio;
 
 public class ClienteRest {
     private final ObjectMapper mapeador = new ObjectMapper();
@@ -89,6 +90,31 @@ public class ClienteRest {
         } catch (Exception e) {
             System.err.println("[REST] Error obteniendo estado de " + urlSwitch + ": " + e.getMessage());
             return false;
+        }
+    }
+
+    public ConfiguracionSitio obtenerSiteConfig(String baseUrl) {
+        try {
+            URL url = new URL(baseUrl + "/site-config");
+            HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
+
+            conexion.setRequestMethod("GET");
+            conexion.setConnectTimeout(tiempoEsperaMs);
+            conexion.setReadTimeout(tiempoEsperaMs);
+
+            int codigo = conexion.getResponseCode();
+            if (codigo != 200) {
+                throw new RuntimeException("Error al obtener site-config. HTTP: " + codigo);
+            }
+
+            String respuesta = new String(conexion.getInputStream().readAllBytes());
+            conexion.disconnect();
+
+            return mapeador.readValue(respuesta, ConfiguracionSitio.class);
+
+        } catch (Exception e) {
+            System.err.println("[REST] Error obteniendo site-config: " + e.getMessage());
+            return null;
         }
     }
 

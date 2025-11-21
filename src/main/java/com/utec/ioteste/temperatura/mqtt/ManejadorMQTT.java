@@ -9,7 +9,7 @@ import com.utec.ioteste.temperatura.api.impl.ControladorTemperaturaImpl;
 public class ManejadorMQTT implements MqttCallback {
     private MqttClient clienteMqtt;
     private final String servidorMqtt;
-    private  ControladorTemperatura controlador; // final para evitar null
+    private  ControladorTemperatura controlador;
     private final ObjectMapper mapeador = new ObjectMapper();
     private boolean conectado = false;
 
@@ -21,7 +21,7 @@ public class ManejadorMQTT implements MqttCallback {
     public void conectar(String idCliente) throws MqttException {
         clienteMqtt = new MqttClient(servidorMqtt, idCliente + "_" + System.currentTimeMillis());
         MqttConnectOptions opciones = new MqttConnectOptions();
-        opciones.setCleanSession(true); //AL ESTAR ESTO EN TRUE SE PIERDEN LAS SUSCRIPCIONES EN CASO DE CAIDA Y RECONEXION, HAY QUE PONERLO EN false
+        opciones.setCleanSession(false);
         opciones.setAutomaticReconnect(true);
 
         clienteMqtt.setCallback(this);
@@ -77,12 +77,11 @@ public class ManejadorMQTT implements MqttCallback {
             } else if (json.has("temp")) {
                 temperatura = json.get("temp").asDouble();
             } else {
-                // Intentar parsear como valor simple
                 temperatura = Double.parseDouble(contenido);
             }
 
             // Validar rango
-            if (temperatura >= -50 && temperatura <= 60) {
+            if (temperatura >= -30 && temperatura <= 50) {
                 controlador.procesarMedicionTemperatura(tema, temperatura);
                 System.out.println("[MQTT] Temperatura recibida - Sensor: " + tema + ", Temp: " + temperatura + "°C");
             } else {
@@ -97,7 +96,6 @@ public class ManejadorMQTT implements MqttCallback {
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        // No requerido
     }
 
     public boolean estaConectado() {
