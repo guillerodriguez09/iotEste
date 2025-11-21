@@ -5,31 +5,41 @@ import com.utec.ioteste.temperatura.api.ControladorTemperatura;
 import com.utec.ioteste.temperatura.modelo.*;
 import com.utec.ioteste.temperatura.rest.ClienteRest;
 import com.utec.ioteste.temperatura.mqtt.ManejadorMQTT;
+
 import java.util.*;
 import java.util.concurrent.*;
 
 public class ControladorTemperaturaImpl implements ControladorTemperatura {
-    
+
     private ConfiguracionSitio configuracion;
-    private Map<String, Double> temperaturasActuales;
-    private Map<String, AccionTemperatura> accionesActuales;
+
+    private final Map<String, Double> temperaturasActuales;
+
+    private final Map<String, AccionTemperatura> accionesActuales;
+
     private ManejadorMQTT manejadorMqtt;
     private ClienteRest clienteRest;
+
     private ScheduledExecutorService ejecutor;
-    
+
     private long medicionesRecibidas = 0;
     private long accionesEjecutadas = 0;
     private long erroresRest = 0;
+
     private boolean activo = false;
-    private static final double HISTERESIS = 0.5;
+
+    private static final double HISTERESIS = 1.0;
+
     private static final long PERIODO_CONTROL_MS = 5000;
 
     public ControladorTemperaturaImpl(ConfiguracionSitio config, ManejadorMQTT mqtt, ClienteRest rest) {
         this.configuracion = config;
         this.manejadorMqtt = mqtt;
         this.clienteRest = rest;
+
         this.temperaturasActuales = new ConcurrentHashMap<>();
         this.accionesActuales = new ConcurrentHashMap<>();
+
         this.ejecutor = Executors.newScheduledThreadPool(2);
     }
 
@@ -37,9 +47,9 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
     public void iniciar() {
         try {
             System.out.println("[CONTROLADOR] Iniciando control de temperatura...");
-            
-            // Conectar MQTT y suscribirse a sensores
+
             manejadorMqtt.conectar("controlador-temperatura");
+
             for (Habitacion hab : configuracion.obtenerHabitaciones()) {
                 String sensor = hab.obtenerSensor();
                 if (sensor != null && !sensor.isEmpty()) {
@@ -47,17 +57,17 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
                     System.out.println("[MQTT] Suscrito a: " + sensor);
                 }
             }
-            
-            // Iniciar ciclo de control
+
             ejecutor.scheduleAtFixedRate(
-                this::ejecutarControlTemperatura,
-                0,
-                PERIODO_CONTROL_MS,
-                TimeUnit.MILLISECONDS
+                    this::ejecutarControlTemperatura,
+                    0,
+                    PERIODO_CONTROL_MS,
+                    TimeUnit.MILLISECONDS
             );
-            
+
             activo = true;
             System.out.println("[CONTROLADOR] Sistema activo");
+
         } catch (Exception e) {
             System.err.println("[CONTROLADOR] Error iniciando: " + e.getMessage());
             e.printStackTrace();
@@ -68,9 +78,7 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
     public void detener() {
         try {
             activo = false;
-            if (manejadorMqtt != null) {
-                manejadorMqtt.desconectar();
-            }
+            if (manejadorMqtt != null) manejadorMqtt.desconectar();
             if (ejecutor != null) {
                 ejecutor.shutdown();
                 ejecutor.awaitTermination(5, TimeUnit.SECONDS);
@@ -95,7 +103,6 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
 
     @Override
     public AccionTemperatura obtenerDecision(String idHabitacion) {
-        // Buscar la habitación en la configuración
         Habitacion hab = configuracion.obtenerHabitaciones().stream()
                 .filter(h -> h.obtenerNombre().equals(idHabitacion))
                 .findFirst()
@@ -105,24 +112,22 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
             return new AccionTemperatura(idHabitacion, false, "Habitación no encontrada");
         }
 
-        double tempActual = temperaturasActuales.getOrDefault(hab.obtenerNombre(), hab.obtenerTemperaturaEsperada());
-
-        double tempEsperada = hab.obtenerTemperaturaEsperada();
-
-        boolean encender = necesitaCalefaccion(tempActual, tempEsperada);
-
-        String motivo = encender
-                ? "Temperatura actual (" + tempActual + ") menor a la esperada (" + tempEsperada + ")"
-                : "Temperatura en rango";
-
-        return new AccionTemperatura(
+        double tempActual = temperaturasActuales.getOrDefault(
                 hab.obtenerNombre(),
-                encender,
-                motivo
+                Double.NaN // Si no hay medición, no deberíamos tomar decisiones
         );
+
+        if (Double.isNaN(tempActual)) {
+            return new AccionTemperatura(hab.obtenerNombre(), false, "Sin medición disponible");
+        }
+
+        boolean encender = necesitaCalefaccion(tempActual, hab.obtenerTemperaturaEsperada());
+        String motivo = encender ?
+                "Temperatura actual (" + tempActual + ") menor a la esperada" :
+                "Temperatura en rango";
+
+        return new AccionTemperatura(hab.obtenerNombre(), encender, motivo);
     }
-
-
 
     @Override
     public List<AccionTemperatura> obtenerAccionesPendientes() {
@@ -130,106 +135,115 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
     }
 
     @Override
-    public ControladorTemperatura.EstadoControlador obtenerEstado() {
-        return new ControladorTemperatura.EstadoControlador(activo, medicionesRecibidas, accionesEjecutadas, erroresRest);
+    public EstadoControlador obtenerEstado() {
+        return new EstadoControlador(activo, medicionesRecibidas, accionesEjecutadas, erroresRest);
     }
 
     private void ejecutarControlTemperatura() {
         try {
             boolean tarifaAlta = esHoraAltaTarifa(configuracion.obtenerTipoContrato());
-            
+
             if (tarifaAlta) {
-                // TARIFA ALTA: Apagar TODO para evitar consumo
                 System.out.println("[TARIFA] *** TARIFA ALTA *** Apagando todos los calefactores");
                 for (Habitacion hab : configuracion.obtenerHabitaciones()) {
-                    ejecutarAccion(hab, false, "TARIFA ALTA - Sistema pausado");
+                    enviarAccionSoloSiCambia(hab, false, "TARIFA ALTA");
                 }
-            } else {
-                // TARIFA NORMAL: Control de temperatura normal
-                System.out.println("[TARIFA] Tarifa normal - Control activo");
-                
-                // Calcular consumo total actual
-                double consumoTotal = 0;
-                List<Habitacion> habitacionesAEncender = new ArrayList<>();
-                
-                for (Habitacion hab : configuracion.obtenerHabitaciones()) {
-                    double tempActual = temperaturasActuales.getOrDefault(hab.obtenerNombre(), hab.obtenerTemperaturaEsperada());
-                    
-                    if (necesitaCalefaccion(tempActual, hab.obtenerTemperaturaEsperada())) {
-                        consumoTotal += hab.obtenerConsumoWh();
-                        habitacionesAEncender.add(hab);
-                    }
+                return;
+            }
+
+            System.out.println("[TARIFA] Tarifa normal - Control activo");
+
+            double consumoTotalKWh = 0;
+            List<Habitacion> habitacionesAEncender = new ArrayList<>();
+
+            for (Habitacion hab : configuracion.obtenerHabitaciones()) {
+                Double tempActual = temperaturasActuales.get(hab.obtenerNombre());
+
+                if (tempActual == null) {
+                    System.out.println("[WARN] Sin medición para " + hab.obtenerNombre());
+                    continue;
                 }
-                
-                // Ajustar si hay limitación de energía
-                if (consumoTotal < configuracion.obtenerEnergiaMaximaKWh()) {
-                    ajustarPorLimitacionEnergia(habitacionesAEncender);
-                } else {
-                    // Ejecutar acciones sin limitación
-                    for (Habitacion hab : habitacionesAEncender) {
-                        ejecutarAccion(hab, true, "Temperatura baja");
-                    }
-                    for (Habitacion hab : configuracion.obtenerHabitaciones()) {
-                        if (!habitacionesAEncender.contains(hab)) {
-                            ejecutarAccion(hab, false, "Temperatura en rango");
-                        }
-                    }
+
+                if (necesitaCalefaccion(tempActual, hab.obtenerTemperaturaEsperada())) {
+                    consumoTotalKWh += hab.obtenerConsumoKWh();
+                    habitacionesAEncender.add(hab);
                 }
             }
+
+            double limiteKWh = configuracion.obtenerEnergiaMaximaKWh();
+
+            if (consumoTotalKWh > limiteKWh) {
+                ajustarPorLimitacionEnergia(habitacionesAEncender, limiteKWh);
+            } else {
+                for (Habitacion h : configuracion.obtenerHabitaciones()) {
+                    boolean enc = habitacionesAEncender.contains(h);
+                    enviarAccionSoloSiCambia(h, enc, enc ? "Temperatura baja" : "Temperatura OK");
+                }
+            }
+
         } catch (Exception e) {
             System.err.println("[CONTROLADOR] Error ejecutando control: " + e.getMessage());
         }
     }
 
+    private void enviarAccionSoloSiCambia(Habitacion hab, boolean encender, String razon) {
+        AccionTemperatura previo = accionesActuales.get(hab.obtenerNombre());
+
+        if (previo != null && previo.isEncender() == encender) {
+            return;
+        }
+
+        ejecutarAccion(hab, encender, razon);
+    }
+
     private void ejecutarAccion(Habitacion hab, boolean encender, String razon) {
         try {
-            String urlSwitch = hab.obtenerUrlSwitch();
-            boolean exito = clienteRest.enviarComando(urlSwitch, encender);
-            
-            AccionTemperatura accion = new AccionTemperatura(
-                hab.obtenerNombre(),
-                encender,
-                razon
-            );
+            boolean exito = clienteRest.enviarComando(hab.obtenerUrlSwitch(), encender);
+
+            AccionTemperatura accion = new AccionTemperatura(hab.obtenerNombre(), encender, razon);
             accionesActuales.put(hab.obtenerNombre(), accion);
-            
-            System.out.println("[REST] " + hab.obtenerNombre() + " -> " + (encender ? "ENCENDER" : "APAGAR") + " (" + razon + ")");
-            
-            if (exito) {
-                accionesEjecutadas++;
-            } else {
-                erroresRest++;
-            }
+
+            System.out.println("[REST] " + hab.obtenerNombre() + " -> " +
+                    (encender ? "ENCENDER" : "APAGAR") + " (" + razon + ")");
+
+            if (exito) accionesEjecutadas++;
+            else erroresRest++;
+
         } catch (Exception e) {
             erroresRest++;
             System.err.println("[CONTROLADOR] Error ejecutando acción: " + e.getMessage());
         }
     }
 
-    private void ajustarPorLimitacionEnergia(List<Habitacion> habitaciones) {
+    private void ajustarPorLimitacionEnergia(List<Habitacion> habitaciones, double limiteKWh) {
         System.out.println("[ENERGÍA] Limitación activa: priorizando habitaciones");
-        
-        // Priorizar por diferencia de temperatura
+
         habitaciones.sort((h1, h2) -> {
-            double diff1 = Math.abs(temperaturasActuales.getOrDefault(h1.obtenerNombre(), h1.obtenerTemperaturaEsperada()) - h1.obtenerTemperaturaEsperada());
-            double diff2 = Math.abs(temperaturasActuales.getOrDefault(h2.obtenerNombre(), h2.obtenerTemperaturaEsperada()) - h2.obtenerTemperaturaEsperada());
+            double diff1 = Math.max(0,
+                    h1.obtenerTemperaturaEsperada() -
+                            temperaturasActuales.getOrDefault(h1.obtenerNombre(), h1.obtenerTemperaturaEsperada()));
+
+            double diff2 = Math.max(0,
+                    h2.obtenerTemperaturaEsperada() -
+                            temperaturasActuales.getOrDefault(h2.obtenerNombre(), h2.obtenerTemperaturaEsperada()));
+
             return Double.compare(diff2, diff1);
         });
-        
-        double consumoAcumulado = 0;
-        Set<String> habitacionesAEncender = new HashSet<>();
-        
+
+        double acumulado = 0;
+        Set<String> prender = new HashSet<>();
+
         for (Habitacion hab : habitaciones) {
-            if (consumoAcumulado + hab.obtenerConsumoWh() <= configuracion.obtenerEnergiaMaximaKWh()) {
-                consumoAcumulado += hab.obtenerConsumoWh();
-                habitacionesAEncender.add(hab.obtenerNombre());
+            double consumo = hab.obtenerConsumoKWh();
+            if (acumulado + consumo <= limiteKWh) {
+                acumulado += consumo;
+                prender.add(hab.obtenerNombre());
             }
         }
-        
-        // Ejecutar acciones finales
+
         for (Habitacion hab : configuracion.obtenerHabitaciones()) {
-            boolean debeEncender = habitacionesAEncender.contains(hab.obtenerNombre());
-            ejecutarAccion(hab, debeEncender, debeEncender ? "Priorizada por diferencia" : "Limitación de energía");
+            boolean debe = prender.contains(hab.obtenerNombre());
+            enviarAccionSoloSiCambia(hab, debe, debe ? "Priorizada" : "Limitación energía");
         }
     }
 
@@ -237,32 +251,10 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
         return (esperada - actual) > HISTERESIS;
     }
 
-    /* Esto con la clase que nos paso el profe, o directamente se puede llamar a energyZone al inicio de
-    la funcion ejecutarControlTemperatura pasandole tanto el tipo de contrato y el ts actual
-    private boolean esHoraPico(String contrato, long ts){
-        int res = energyZone(contrato, ts);
-        if(res == 1) {
-            return true;
-        }else{
-            return false;
-        }
-    }
-    */
     private boolean esHoraAltaTarifa(String tipoContrato) {
         EnergyCost.EnergyZone zona = EnergyCost.currentEnergyZone(tipoContrato);
-
-        boolean esAlta = zona.current() == EnergyCost.HIGH;
-
-        if (esAlta) {
-            System.out.println("[TARIFA] Tarifa ALTA (Punta)");
-        } else {
-            System.out.println("[TARIFA] Tarifa BAJA (Llano)");
-        }
-
-        return esAlta;
+        return zona.current() == EnergyCost.HIGH;
     }
-
-
 
     public void setManejadorMqtt(ManejadorMQTT manejadorMqtt) {
         this.manejadorMqtt = manejadorMqtt;

@@ -23,4 +23,8 @@ public class AccionTemperatura {
         return String.format("AccionTemperatura{habitacion='%s', encender=%s, razon='%s'}",
                 idHabitacion, encender, razon);
     }
+
+    public boolean isEncender() {
+        return encender;
+    }
 }

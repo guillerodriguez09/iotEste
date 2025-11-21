@@ -27,8 +27,9 @@ public class CargadorConfiguracion {
         String nombreSitio = json.get("site").getAsString();
 
         // --- ENERGÍA ---
+        // ahora analizarEnergia() retorna SIEMPRE kWh
         String maxEnergyStr = json.get("maxEnergy").getAsString();
-        double energiaMaximaKWh = analizarEnergia(maxEnergyStr) / 1000.0;
+        double energiaMaximaKWh = analizarEnergia(maxEnergyStr);
 
         // --- REFRESH ---
         JsonObject franjaHoraria = json.getAsJsonObject("timeSlot");
@@ -56,9 +57,11 @@ public class CargadorConfiguracion {
     private static Habitacion analizarHabitacion(JsonObject json) {
 
         String nombre = json.get("name").getAsString();
-        double tempEsperada = Double.parseDouble(json.get("expectedTemp").getAsString());
+        double tempEsperada = json.get("expectedTemp").getAsDouble();
+
+        // energía SIEMPRE en kWh
         String energyStr = json.get("energy").getAsString();
-        int energiaWh = analizarEnergia(energyStr);
+        double consumoKWh = analizarEnergia(energyStr);
 
         String urlSwitch = json.get("switch").getAsString();
         String sensor = json.get("sensor").getAsString();
@@ -69,10 +72,11 @@ public class CargadorConfiguracion {
             urlSwitch = corregida;
         }
 
-        return new Habitacion(nombre, tempEsperada, energiaWh, urlSwitch, sensor);
+        return new Habitacion(nombre, tempEsperada, consumoKWh, urlSwitch, sensor);
     }
 
-    private static int analizarEnergia(String energyStr) {
+
+    private static double analizarEnergia(String energyStr) {
 
         if (energyStr == null || energyStr.isBlank()) {
             throw new IllegalArgumentException("Cadena de energía vacía o nula");
@@ -80,23 +84,20 @@ public class CargadorConfiguracion {
 
         String clean = energyStr.trim().toUpperCase();
 
-        // Extraer valor y unidad
         String valorStr = clean.replaceAll("[^0-9.]", "");
-        String unidad = clean.replaceAll("[0-9.]", "").trim();
+        String unidad   = clean.replaceAll("[0-9.]", "").trim();
 
         if (valorStr.isEmpty()) throw new IllegalArgumentException("Formato inválido: " + energyStr);
-        if (unidad.isEmpty()) unidad = "WH";
+        if (unidad.isEmpty()) unidad = "KWH";  // default
 
         double valor = Double.parseDouble(valorStr);
-        return (int) (valor * obtenerMultiplicador(unidad));
-    }
 
-    private static double obtenerMultiplicador(String unidad) {
         return switch (unidad) {
-            case "WH" -> 1;
-            case "KWH" -> 1000;
-            case "MWH" -> 1_000_000;
+            case "KWH" -> valor;
+            case "WH"  -> valor / 1000.0;      // Wh → kWh
+            case "MWH" -> valor * 1000.0;      // MWh → kWh
             default -> throw new IllegalArgumentException("Unidad desconocida: " + unidad);
         };
     }
+
 }

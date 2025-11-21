@@ -1,5 +1,8 @@
 package com.utec.ioteste.temperatura.modelo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -12,17 +15,19 @@ public class ConfiguracionSitio {
     private final String tipoContrato;
     private final List<Habitacion> habitaciones;
 
-    public ConfiguracionSitio(String nombreSitio,
-                              double energiaMaximaKWh,
-                              int periodoRefreshMs,
-                              String tipoContrato,
-                              List<Habitacion> habitaciones) {
-
+    @JsonCreator
+    public ConfiguracionSitio(
+            @JsonProperty("site") String nombreSitio,
+            @JsonProperty("maxEnergy") double energiaMaximaKWh,
+            @JsonProperty("refreshPeriod") int periodoRefreshMs,
+            @JsonProperty("contractType") String tipoContrato,
+            @JsonProperty("rooms") List<Habitacion> habitaciones
+    ) {
         this.nombreSitio = nombreSitio;
         this.energiaMaximaKWh = energiaMaximaKWh;
         this.periodoRefreshMs = periodoRefreshMs;
         this.tipoContrato = tipoContrato;
-        this.habitaciones = new ArrayList<>(habitaciones);
+        this.habitaciones = habitaciones;
     }
 
     public String obtenerNombreSitio() { return nombreSitio; }
