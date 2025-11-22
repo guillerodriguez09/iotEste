@@ -13,3 +13,5 @@ target/
 
 # Archivos de build temporales
 build/
+
+simulador/

@@ -51,12 +51,24 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
             manejadorMqtt.conectar("controlador-temperatura");
 
             for (Habitacion hab : configuracion.obtenerHabitaciones()) {
-                String nom = hab.obtenerNombre();
                 String sensor = hab.obtenerSensor();
                 if (sensor != null && !sensor.isEmpty()) {
-                    String tema = sensor + "/" + nom;
-                    manejadorMqtt.suscribirse(tema);
-                    System.out.println("[MQTT] Suscrito a: " +tema);
+                    // Si el sensor es genérico (ej: "sim/ht"), construir el tema completo
+                    // extrayendo el ID del switch de la URL (ej: "sim/ht/1")
+                    String temaSensor = sensor;
+                    if (sensor.equals("sim/ht") || !sensor.contains("/")) {
+                        // Extraer ID del switch de la URL (ej: http://simulator:8080/switch/1 -> 1)
+                        String urlSwitch = hab.obtenerUrlSwitch();
+                        try {
+                            String[] partes = urlSwitch.split("/");
+                            String idSwitch = partes[partes.length - 1];
+                            temaSensor = sensor + "/" + idSwitch;
+                        } catch (Exception e) {
+                            System.err.println("[WARN] No se pudo extraer ID del switch de: " + urlSwitch);
+                        }
+                    }
+                    manejadorMqtt.suscribirse(temaSensor);
+                    System.out.println("[MQTT] Suscrito a: " + temaSensor);
                 }
             }
 
@@ -92,14 +104,41 @@ public class ControladorTemperaturaImpl implements ControladorTemperatura {
     }
 
     @Override
-    public void procesarMedicionTemperatura(String idSensor, double temperatura) {
+    public void procesarMedicionTemperatura(String tema, double temperatura) {
+        // El tema recibido es el tema del sensor (ej: "sim/ht/1", "sim/ht/2", "sim/ht/3")
+        // Necesitamos encontrar la habitación que tiene este sensor
+        
+        boolean encontrada = false;
         for (Habitacion hab : configuracion.obtenerHabitaciones()) {
-            if (hab.obtenerSensor().equals(idSensor)) {
-                temperaturasActuales.put(hab.obtenerNombre(), temperatura);
+            String nombre = hab.obtenerNombre();
+            String sensor = hab.obtenerSensor();
+            
+            // Construir el tema esperado de la misma manera que en iniciar()
+            String temaEsperado = sensor;
+            if (sensor.equals("sim/ht") || !sensor.contains("/")) {
+                // Extraer ID del switch de la URL
+                String urlSwitch = hab.obtenerUrlSwitch();
+                try {
+                    String[] partes = urlSwitch.split("/");
+                    String idSwitch = partes[partes.length - 1];
+                    temaEsperado = sensor + "/" + idSwitch;
+                } catch (Exception e) {
+                    // Si falla, usar el sensor tal cual
+                }
+            }
+            
+            // El tema recibido debe coincidir con el tema esperado
+            if (tema.equals(temaEsperado) || tema.equals(sensor)) {
+                temperaturasActuales.put(nombre, temperatura);
                 medicionesRecibidas++;
-                System.out.println("[MQTT] Temperatura " + hab.obtenerNombre() + ": " + temperatura + "°C");
+                System.out.println("[MQTT] Temperatura " + nombre + ": " + temperatura + "°C");
+                encontrada = true;
                 break;
             }
+        }
+        
+        if (!encontrada) {
+            System.err.println("[MQTT] No se encontró habitación para el tema: " + tema);
         }
     }
 

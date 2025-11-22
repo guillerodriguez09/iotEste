@@ -12,6 +12,11 @@ public class ClienteRest {
 
     public boolean enviarComando(String urlSwitch, boolean encendido) {
         try {
+            // Corregir URL si contiene localhost
+            if (urlSwitch != null && urlSwitch.contains("localhost")) {
+                urlSwitch = urlSwitch.replace("localhost", "simulator");
+            }
+            
             URL url;
             String payload;
 

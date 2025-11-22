@@ -30,9 +30,9 @@ services:
       MQTT_URL: tcp://mosquitto:1883
       MQTT_BROKER: mosquitto
       MQTT_PORT: 1883
-      SIMULATOR_CONFIG: /config/configuracion.json
+      SIMULATOR_CONFIG: /config/simulation_config.json
     volumes:
-      - ./config/configuracion.json:/config/configuracion.json:ro
+      - ./config/simulation_config.json:/config/simulation_config.json:ro
       - ./logs/simulator:/logs
     ports:
       - "8080:8080"
